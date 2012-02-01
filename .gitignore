@@ -1,0 +1,3 @@
+# Ignore build directories
+release-i686/
+release-arm/

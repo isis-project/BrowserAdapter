@@ -1,0 +1,387 @@
+<html>
+<head>
+	<title>Browser Plugin Test</title>
+	<meta name="viewport" content="width=320; user-scalable=false" /> 
+	<style type='text/css'>
+	body { padding:0px; margin:0px; -webkit-user-select:none; }
+	#webview {
+		position:absolute;
+		left:0px;
+		top:0px;
+		width:320px;
+		height:320px;	
+		background:transparent;
+	}
+	#container {
+		-border:1px solid black;
+		position:absolute;
+		left:0px;
+		top:0px;
+		background:transparent;
+	}
+	#url {
+		width:300px;
+		left:0px;
+		position:absolute;
+	}
+	#overlay {
+		position:absolute;
+		left:0px;
+		top:0px;
+		width:320px;
+		height:320px;
+		-border:1px solid red;
+		background:transparent;
+	}
+	#row {
+		position:absolute;
+		top: 330px;
+		left:10px;
+	}
+	#url {
+		position:absolute;
+		top: 370px;
+		left:10px;
+		background:transparent;
+	}
+	#progmeter {
+		position:absolute;
+		top: 372px;
+		left:11px;
+		width:298px;
+		height:20px;
+		background:lightblue;
+		z-index:-1000;
+	}
+	</style>
+	<script type="text/javascript">
+	var $ = function(x){return document.getElementById(x);};
+	var adapter;
+	var overlay;
+	var scaledWidth=0, scaledHeight=0;
+	var scale=0,scrollx=0, scrolly=0;
+	var webviewWidth=320;
+	var webviewHeight=320;
+	var lastSmartZoom="";
+	var lastX=0;
+	var lastY=0;
+	var wasDragging;
+	var gestureScrollXUnscaled;
+	var gestureScrollYUnscaled;
+	var gestureStartScale;
+	var trackingGesture=false;
+	var origCenterX;
+	var origCenterY;
+	
+	function init() {
+		//	Install the browser plugin
+		adapter = document.createElement("object");
+		adapter.setAttribute("type", "application/x-palm-browser");
+		adapter.setAttribute("width", webviewWidth);
+		adapter.setAttribute("height", webviewHeight);
+		adapter.eventListener = WebViewListener;
+		
+		$('webview').parentNode.replaceChild(adapter, $('webview') );
+		
+		overlay = $('overlay');
+		overlay.addEventListener('mousedown', mouseDown, true );
+		overlay.addEventListener('mousemove', mouseMove, true );
+		overlay.addEventListener('mouseup', mouseUp, true );
+		window.addEventListener('keydown', keyDown, false );
+		window.addEventListener('keyup', keyUp, false );
+		window.addEventListener('keypress', keyUp, false );
+		
+		overlay.addEventListener('gesturestart', gestureStart, true );
+		overlay.addEventListener('gesturechange', gestureChanged, true );
+		overlay.addEventListener('gestureend', gestureEnd, true );
+
+		adapter.openURL( "http://www.google.com/" );	
+		
+		overlay.focus();
+	}
+	
+	function cmdBack() { adapter.goBack(); }
+	function cmdForward() { adapter.goForward(); }
+	function incZoom() {
+		adapter.setMagnification(scale * 1.25);
+	}
+	function decZoom() {
+		adapter.setMagnification(scale / 1.25);
+	}
+	
+	var origPageWidth;
+	var origPageHeight;
+	
+	// -- Gesture events
+	function gestureStart(event) {
+		gestureStartScale=0;
+		origPageWidth=scaledWidth;
+		origPageHeight=scaledHeight;
+		console.log( "gestureStart "+scrollx+", "+scrolly );
+		gestureScrollXUnscaled = (scrollx);
+		gestureScrollYUnscaled = (scrolly);
+		gestureStartScale = scale;
+		origCenterX=parseInt(webviewWidth/2 + scrollx );
+		origCenterY=(webviewHeight/2 + scrolly );
+		trackingGesture=true;
+		console.log( "orig center "+origCenterX+", "+origCenterY+" (unscaled)" );
+		return true;
+	}
+	function gestureChanged(event) {
+		
+		//console.log( "event.scale="+event.scale );
+	
+		var sx=0;
+		var sy=0;
+		
+		var sf = event.scale;// * 0.5;
+		
+		var newScale = gestureStartScale * sf;
+		
+		//console.log("             " );
+		//console.log("             " );
+		
+		// we need to keep the image "centered" as it was before the last scale
+		// so, we preserve the center point (as much as is possible) by adjusting
+		// the scroll offsets to this new scale value.
+		
+		// What would the scrollx be, given we want the document centered at 
+		// the UNSCALED center point of origCenterX?
+		
+		// how much do I have to adjust scrollx to get the same center point as last time?
+		
+		var newScaledWidth = ( (newScale*(scaledWidth/scale)) );
+		var newCenterX = (parseInt(newScaledWidth) * origCenterX) / parseInt(origPageWidth);		
+		sx = Math.abs( newCenterX - (webviewWidth/2)  );
+
+		var newScaledHeight = ( (newScale*(scaledHeight/scale)) );
+		var newCenterY = (parseInt(newScaledHeight) * origCenterY) / parseInt(origPageHeight);		
+		sy = Math.abs( newCenterY - (webviewHeight/2)  );
+		
+		// don't scroll offscreen in either access if the newPageSize is less than the webviewSize.
+		if( newScaledHeight < webviewHeight )
+			sy = 0;
+		if( newScaledWidth < webviewWidth )
+			sx = 0;
+		
+		console.log( "newScaledHeight="+newScaledHeight+"  sy="+sy );
+		/*
+		console.log( "orig page width="+origPageWidth+"   new page width="+newScaledWidth );
+		console.log( "orig centerX="+origCenterX+"   new centerX="+newCenterX );
+		console.log( "webviewwidth/2="+(webviewWidth / 2 ) );
+		console.log( "scrollx="+sx+" newpageScaledWidth="+newScaledWidth );
+		
+		
+		console.log("--------------------------" );
+		*/
+		
+		scrollx = sx;
+		scrolly = sy;
+		adapter.pageScaleAndScroll( newScale, 
+				parseInt(sx),
+				parseInt(sy) );
+		return true;
+	}
+	function gestureEnd(event) {
+		console.log( "gestureEnd " );
+		trackingGesture=false;
+		return true;
+	}
+	
+	// -- Keyboard events from overlay
+	function keyDown(event) {
+		//console.log( "keydown" );
+		return false;
+	}
+	
+	function keyUp(event) {
+		//console.log( "up" );
+		return false;
+	}
+	
+	// -- Mouse events from overlay
+	function mouseDown(event) {	
+		if( trackingGesture )
+			return;
+		if( $('zoom').checked) {
+			smartZoom( event.clientX, event.clientY );
+			return;
+		}
+		lastX=event.clientX;
+		lastY=event.clientY;
+		wasDragging=false;
+
+		// NOTE : do not dispatch a mouse down if we don't get a move.
+		
+		return false;		
+	}
+	function mouseMove(event) {
+		if( trackingGesture )
+			return;
+		adapter.scrollBy( lastX-event.clientX, lastY-event.clientY );
+		if( lastX != event.clientX || lastY != event.clientY )
+			wasDragging=true;
+			
+		scrollx += lastX-event.clientX;
+		scrolly += lastY-event.clientY;
+		
+		lastX=event.clientX;
+		lastY=event.clientY;
+		return false;
+	}
+	function mouseUp(event) {
+		if( trackingGesture )
+			return;
+		if( wasDragging || $('zoom').checked) { return false; }
+		
+		// Send a click event if we didn't drag anywhere.
+		var evObj = document.createEvent('MouseEvents');
+		evObj.initMouseEvent( 'mousedown', false, false, window, 1, 
+			event.screenX, event.screenY, 
+			event.clientX, event.clientY, false, false, true, false, 0, null );
+		adapter.dispatchEvent(evObj);
+		
+		
+		evObj = document.createEvent('MouseEvents');
+		evObj.initMouseEvent( 'mouseup', false, false, window, 1, 
+			event.screenX, event.screenY,
+			event.clientX, event.clientY, false, false, true, false, 0, null );
+		adapter.dispatchEvent(evObj);
+		return false;
+	}
+	
+	function smartZoom( cx, cy ) {
+		
+		//var actualWidth=scaledWidth / scale;
+		//var actualHeight=scaledHeight / scale;
+		
+		//console.log("smart zoom page 1:1 is "+actualWidth+" x "+actualHeight );
+		//console.log( "smart zoom click "+cx+","+cy+"  1:1="+(cx/scale)+","+(cy/scale) );
+		
+		var str = adapter.smartZoomCluster(cx,cy);
+		if( str == lastSmartZoom ) {
+			// UX : if smartzoom returns same result as last time, then scale out.
+			lastSmartZoom = "";
+			var actualWidth=scaledWidth / scale;
+			var newScale = webviewWidth / actualWidth;
+			adapter.pageScaleAndScroll( newScale, 0, 0 );
+			scrollx=0;
+			scrolly=0;
+			//animateTransitionTo( newScale, 0, 0 );
+			return;
+		}
+		
+		lastSmartZoom = str;
+		
+		var arr = str.split(",");
+		if( !arr.length )
+			return;
+		
+		// this is the rect to zoom to, at unscaled coords
+		var left=arr[0];
+		var top=arr[1];
+		var width=arr[2];
+		
+		console.log("smart zoom WINNING rect @ "+left+", "+top );
+		
+		var newScale = webviewWidth / width;		
+		//console.log("smart zoom new scaleFactor is "+newScale );
+
+		animateTransitionTo( newScale, left, top );
+	}
+	
+	var animationScale1;
+	var animationScale2;
+	var animationSX1;
+	var animationSX2;
+	var animationSY1;
+	var animationSY2;
+	var animationFrameIdx;
+	var animationFrameTotal;
+	function animateTransitionTo( newScale, newLeft, newTop ) {
+		animationScale1=scale;
+		animationSX1=parseInt(scrollx/scale);
+		animationSY1=parseInt(scrolly/scale);
+		animationScale2=newScale;
+		animationSX2=parseInt(newLeft);
+		animationSY2=parseInt(newTop);
+		animationFrameIdx=0;
+		animationFrameTotal=10;
+		animateTick();
+	}
+	function animateTick() {
+		animationFrameIdx++;
+		if( animationFrameIdx < animationFrameTotal ) {
+			var pc=animationFrameIdx / animationFrameTotal;
+			
+			scrollx=animationSX1+Math.ceil( (animationSX2-animationSX1)*pc );
+			scrolly=animationSY1+Math.ceil( (animationSY2-animationSY1)*pc );
+			adapter.pageScaleAndScroll( 
+					animationScale1+( (animationScale2-animationScale1)*pc ) , 
+					scrollx, 
+					scrolly
+					);
+			setTimeout( animateTick, 30 ); 
+		}
+		else {
+			adapter.pageScaleAndScroll( animationScale2, animationSX2, animationSY2 );
+			scrollx=animationSX2;
+			scrolly=animationSY2;
+		}
+	}
+	function testZoom() {
+		adapter.pageScaleAndScroll( 1.5, 10, 10 );
+	}
+	function urlload(){
+		var urlload = $('url').value;
+		adapter.openURL(urlload);
+	}
+	
+	// -- Callbacks from browser-adapter.	
+	var WebViewListener = {
+		loadProgress : function(p) {
+			$('progmeter').style.width=((298*p)/100)+'px';
+		},
+		titleURLChange : function(title, url) {
+			$('url').value = url;
+		},
+		pageDimensions: function(w,h,scaleFactor) {
+			// Note these are SCALED dimensions. 
+			// Use this for rendering scroll indicators
+			//console.log("CALLBACK : pageDimensions  "+w+", "+h+" scale="+scaleFactor );
+			scaledWidth=w; 
+			scaledHeight=h;
+			scale=scaleFactor;
+		},
+		scrollTo: function(sx,sy) {
+			// The adapter has scrolled itself.
+			scrollx=sx;
+			scrolly=sy;
+			console.log("CALLBACK : scrollto "+sx+","+sy);
+		}
+	};
+	
+	</script>
+</head>
+<body onload='init()'>
+	<div id='container'>
+		<div id="webview" ></div>
+	</div>
+	<div id='row'>
+		
+		<input type='button' onclick='cmdBack()' value="<" />
+		<input type='button' onclick='cmdForward()' value=">" />
+		<input type='button' onclick='testZoom()' value="T" />
+		<input type='button' onclick='decZoom()' value="-" />
+		<input type='button' onclick='incZoom()' value="+" />
+		&nbsp;Autozoom=<input type='checkbox' id='zoom'  />
+		<input type='button' onclick='urlload()' value="Go" />
+	</div>
+	
+	<input id='url' />
+	
+	<div id='overlay'></div>
+	<div id='progmeter'></div>
+</body>
+</html>
+

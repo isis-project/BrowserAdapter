@@ -1,0 +1,5 @@
+/* version script for this plugin to only export public NPAPI symbols and main entry point */                                                    
+BrowserAdapter {                                                                                                                                         
+    global: NP_*;                                                                                                                                       
+    local:  *;                                                                                                                                         
+};
