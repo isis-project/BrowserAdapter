@@ -27,14 +27,14 @@ class BrowserAdapter;
 
 class ElementInfo : public NPObject
 {
-public: 
+public:
     ElementInfo(BrowserAdapter *adapter);
     ~ElementInfo();
 
     static NPClass sElementInfoClass;
-   
-	void initialize(bool success, const char* element, const char* id, const char* name, const char* cname,
-			const char* type, int left, int top, int right, int bottom, int tapX, int tapY, bool isEditable);
+
+    void initialize(bool success, const char* element, const char* id, const char* name, const char* cname,
+                    const char* type, int left, int top, int right, int bottom, int tapX, int tapY, bool isEditable);
     void invalidate();
     bool hasMethod(NPIdentifier name);
     bool invoke(NPIdentifier name, const NPVariant *args, uint32_t argCount, NPVariant *result);
@@ -46,8 +46,8 @@ public:
     bool enumerate(NPIdentifier **value, uint32_t *count);
     bool construct(const NPVariant *args, int32_t argCount, NPVariant *result);
 
-    
-    // Private NP Object callbacks, used for JavaScript integration.  
+
+    // Private NP Object callbacks, used for JavaScript integration.
     // (these translate into appropriate non-static method calls).
     static NPObject* PrvObjAllocate(NPP npp, NPClass* klass);
     static void PrvObjDeallocate(NPObject* obj);
@@ -63,16 +63,16 @@ public:
     static bool PrvObjConstruct(NPObject *obj, const NPVariant *args, uint32_t argCount, NPVariant *result);
 
 private:
-	bool m_success;
-	std::string	m_element;
-	std::string	m_id;
-	std::string	m_name;
-	std::string	m_cname;
-	std::string	m_type;
-	NPObject* m_bounds;
-	int m_tapX;
-	int m_tapY;
-	bool m_isEditable;
+    bool m_success;
+    std::string	m_element;
+    std::string	m_id;
+    std::string	m_name;
+    std::string	m_cname;
+    std::string	m_type;
+    NPObject* m_bounds;
+    int m_tapX;
+    int m_tapY;
+    bool m_isEditable;
 };
 
 #endif // ELEMENT_INFO_H

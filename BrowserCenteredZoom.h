@@ -21,12 +21,12 @@ LICENSE@@@ */
 
 struct BrowserCenteredZoom
 {
-	double scale;
-	int centerX;
-	int centerY;
-	int scrollX;
-	int scrollY;
-	double zoomLevel;
+    double scale;
+    int centerX;
+    int centerY;
+    int scrollX;
+    int scrollY;
+    double zoomLevel;
 };
 
 #endif /* BROWSERCENTEREDZOOM_H */

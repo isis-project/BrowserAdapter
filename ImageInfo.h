@@ -27,14 +27,14 @@ class BrowserAdapter;
 
 class ImageInfo : public NPObject
 {
-public: 
+public:
     ImageInfo(BrowserAdapter *adapter);
     ~ImageInfo();
 
     static NPClass sImageInfoClass;
-   
-	void initialize(bool success, const char* baseUri, const char* src, const char* title,
-			const char* altText, int32_t width, int32_t height, const char* mimeType);
+
+    void initialize(bool success, const char* baseUri, const char* src, const char* title,
+                    const char* altText, int32_t width, int32_t height, const char* mimeType);
     void invalidate();
     bool hasMethod(NPIdentifier name);
     bool invoke(NPIdentifier name, const NPVariant *args, uint32_t argCount, NPVariant *result);
@@ -46,8 +46,8 @@ public:
     bool enumerate(NPIdentifier **value, uint32_t *count);
     bool construct(const NPVariant *args, int32_t argCount, NPVariant *result);
 
-    
-    // Private NP Object callbacks, used for JavaScript integration.  
+
+    // Private NP Object callbacks, used for JavaScript integration.
     // (these translate into appropriate non-static method calls).
     static NPObject* PrvObjAllocate(NPP npp, NPClass* klass);
     static void PrvObjDeallocate(NPObject* obj);
@@ -63,14 +63,14 @@ public:
     static bool PrvObjConstruct(NPObject *obj, const NPVariant *args, uint32_t argCount, NPVariant *result);
 
 private:
-	bool m_success;
-	std::string	m_baseUri;
-	std::string	m_src;
-	std::string	m_altText;
-	std::string	m_title;
-	std::string	m_mimeType;
-	int32_t m_width;
-	int32_t m_height;
+    bool m_success;
+    std::string	m_baseUri;
+    std::string	m_src;
+    std::string	m_altText;
+    std::string	m_title;
+    std::string	m_mimeType;
+    int32_t m_width;
+    int32_t m_height;
 };
 
 #endif

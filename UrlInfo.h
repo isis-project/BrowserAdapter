@@ -27,14 +27,14 @@ class BrowserAdapter;
 
 class UrlInfo : public NPObject
 {
-public: 
+public:
     UrlInfo(BrowserAdapter *adapter);
     ~UrlInfo();
 
     static NPClass sUrlInfoClass;
-   
-	void initialize(bool success, const char* url, const char* desc, 
-			int left, int top, int right, int bottom);
+
+    void initialize(bool success, const char* url, const char* desc,
+                    int left, int top, int right, int bottom);
     void invalidate();
     bool hasMethod(NPIdentifier name);
     bool invoke(NPIdentifier name, const NPVariant *args, uint32_t argCount, NPVariant *result);
@@ -46,8 +46,8 @@ public:
     bool enumerate(NPIdentifier **value, uint32_t *count);
     bool construct(const NPVariant *args, int32_t argCount, NPVariant *result);
 
-    
-    // Private NP Object callbacks, used for JavaScript integration.  
+
+    // Private NP Object callbacks, used for JavaScript integration.
     // (these translate into appropriate non-static method calls).
     static NPObject* PrvObjAllocate(NPP npp, NPClass* klass);
     static void PrvObjDeallocate(NPObject* obj);
@@ -63,10 +63,10 @@ public:
     static bool PrvObjConstruct(NPObject *obj, const NPVariant *args, uint32_t argCount, NPVariant *result);
 
 private:
-	bool m_success;
-	std::string	m_url;
-	std::string	m_desc;
-	NPObject* m_bounds;
+    bool m_success;
+    std::string	m_url;
+    std::string	m_desc;
+    NPObject* m_bounds;
 };
 
 #endif

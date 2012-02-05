@@ -27,21 +27,21 @@ class BrowserAdapterManager
 {
 public:
 
-	static BrowserAdapterManager* instance();
+    static BrowserAdapterManager* instance();
 
-	void registerAdapter(BrowserAdapter* adapter);
-	void unregisterAdapter(BrowserAdapter* adapter);
-	void adapterActivated(BrowserAdapter* adapter, bool activated);
-	void inactiveAdaptersActivate();
-	
-private:
-
-	BrowserAdapterManager();
-	~BrowserAdapterManager();
+    void registerAdapter(BrowserAdapter* adapter);
+    void unregisterAdapter(BrowserAdapter* adapter);
+    void adapterActivated(BrowserAdapter* adapter, bool activated);
+    void inactiveAdaptersActivate();
 
 private:
-	
-	GList* m_adapterList;
+
+    BrowserAdapterManager();
+    ~BrowserAdapterManager();
+
+private:
+
+    GList* m_adapterList;
 };
 
 
