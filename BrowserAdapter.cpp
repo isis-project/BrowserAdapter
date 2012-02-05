@@ -2058,7 +2058,7 @@ const char* BrowserAdapter::js_removeSpotlight(AdapterBase *adapter, const NPVar
 
     TRACE;
 
-    if (proxy->m_spotlightHandle){
+    if (proxy->m_spotlightHandle) {
         proxy->m_spotlightHandle = 0;
         proxy->invalidate();
     }
