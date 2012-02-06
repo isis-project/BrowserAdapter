@@ -2739,7 +2739,7 @@ int BrowserAdapter::writePngFile(const char* pszFileName, const uint32_t* pPixel
 
     int nErr = 0;
 
-    constpng_byte byBitDepth(8);
+    const png_byte byBitDepth(8);
 
     png_structp pPngImage = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
     if (NULL == pPngImage) {
@@ -2921,7 +2921,7 @@ const char* BrowserAdapter::js_generateIconFromFile(AdapterBase *adapter, const 
     int nErr = 0;
 
     // Read in the source file
-    intnImageWidth(0), nImageHeight(0);
+    int nImageWidth(0), nImageHeight(0);
     PPixmap* pInputPixmap(NULL);
     PContext2D context;
     nErr = readPngFile(pszSrcFile, context, pInputPixmap, nImageWidth, nImageHeight);
@@ -3078,7 +3078,7 @@ const char* BrowserAdapter::js_resizeImage(AdapterBase *adapter, const NPVariant
 
     TRACEF("Resizing '%s'->'%s' %d x %d\n", pszSrcFile, pszDstFile, nDstWidth, nDstHeight);
 
-    intnSrcWidth(0), nSrcHeight(0);
+    int nSrcWidth(0), nSrcHeight(0);
     PPixmap* pSrcPixmap(NULL);
     PContext2D context;
     nErr = readPngFile(pszSrcFile, context, pSrcPixmap, nSrcWidth, nSrcHeight);
@@ -3089,7 +3089,7 @@ const char* BrowserAdapter::js_resizeImage(AdapterBase *adapter, const NPVariant
         if (NULL != pFinalPixmap) {
 
             pFinalPixmap->Set (PFORMAT_8888, NULL, 0, true /*allow access*/);
-            PFiltersfilters;
+            PFilters filters;
             filters.DownSample(pFinalPixmap, pSrcPixmap);
         }
         else {
