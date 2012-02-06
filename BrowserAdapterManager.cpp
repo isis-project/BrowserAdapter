@@ -22,77 +22,77 @@ LICENSE@@@ */
 
 BrowserAdapterManager* BrowserAdapterManager::instance()
 {
-	static BrowserAdapterManager* s_instance = 0;
-	if (G_UNLIKELY(s_instance == 0)) {
+    static BrowserAdapterManager* s_instance = 0;
+    if (G_UNLIKELY(s_instance == 0)) {
 
-		s_instance = new BrowserAdapterManager;
-	}
+        s_instance = new BrowserAdapterManager;
+    }
 
-	return s_instance;    
+    return s_instance;
 }
 
 BrowserAdapterManager::BrowserAdapterManager()
-	: m_adapterList(0)
+    : m_adapterList(0)
 {
 }
 
 BrowserAdapterManager::~BrowserAdapterManager()
 {
-	g_list_free(m_adapterList);
+    g_list_free(m_adapterList);
 }
 
 void BrowserAdapterManager::registerAdapter(BrowserAdapter* adapter)
 {
-	m_adapterList = g_list_prepend(m_adapterList, adapter);    
+    m_adapterList = g_list_prepend(m_adapterList, adapter);
 }
 
 void BrowserAdapterManager::unregisterAdapter(BrowserAdapter* adapter)
 {
-	m_adapterList = g_list_remove(m_adapterList, adapter);    
+    m_adapterList = g_list_remove(m_adapterList, adapter);
 }
 
 void BrowserAdapterManager::adapterActivated(BrowserAdapter* adapter, bool activated)
 {
-	if (activated) {
+    if (activated) {
 
-		GList* head = g_list_first(m_adapterList);
+        GList* head = g_list_first(m_adapterList);
         if (head && head->data != adapter) {
 
-			m_adapterList = g_list_remove(m_adapterList, adapter);
-			m_adapterList = g_list_prepend(m_adapterList, adapter);
-		}
+            m_adapterList = g_list_remove(m_adapterList, adapter);
+            m_adapterList = g_list_prepend(m_adapterList, adapter);
+        }
 
-		// Freeze all the other adapters and thaw this one
-		for (GList* iter = g_list_first(m_adapterList); iter; iter = g_list_next(iter)) {
+        // Freeze all the other adapters and thaw this one
+        for (GList* iter = g_list_first(m_adapterList); iter; iter = g_list_next(iter)) {
 
-			BrowserAdapter* a = (BrowserAdapter*) iter->data;
-			if (a == adapter)
-				continue;
+            BrowserAdapter* a = (BrowserAdapter*) iter->data;
+            if (a == adapter)
+                continue;
 
-			a->freeze();
-		}
+            a->freeze();
+        }
 
-		adapter->thaw();
-	}
-/*
-	// if we are really concerned about memory we should enable this
-	else {
-		adapter->freeze();
-	}
-*/
+        adapter->thaw();
+    }
+    /*
+    // if we are really concerned about memory we should enable this
+    else {
+    adapter->freeze();
+    }
+    */
 }
 void BrowserAdapterManager::inactiveAdaptersActivate()
 {
 
-	for (GList* iter = g_list_first(m_adapterList); iter; iter = g_list_next(iter)) {
+    for (GList* iter = g_list_first(m_adapterList); iter; iter = g_list_next(iter)) {
 
-			BrowserAdapter* a = (BrowserAdapter*) iter->data;
-			//thaw the first frozen adapter that is encountered
-			if(a->isFrozen()){
-				
-				a->thaw();
-				break;
-			}
+        BrowserAdapter* a = (BrowserAdapter*) iter->data;
+        //thaw the first frozen adapter that is encountered
+        if(a->isFrozen()) {
 
-	}
+            a->thaw();
+            break;
+        }
+
+    }
 }

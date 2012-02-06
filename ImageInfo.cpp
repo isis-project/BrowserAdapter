@@ -33,9 +33,9 @@ static const char* sPropertyIdNames[] = {
     "src",
     "title",
     "altText",
-	"width",
-	"height",
-	"mimeType"
+    "width",
+    "height",
+    "mimeType"
 };
 
 static const int kNumProperties = G_N_ELEMENTS(sPropertyIdNames);
@@ -74,73 +74,73 @@ NPClass ImageInfo::sImageInfoClass = {
 };
 
 // ImageInfo object static hooks implementation
-// that call actual instance methods 
+// that call actual instance methods
 NPObject* ImageInfo::PrvObjAllocate(NPP npp, NPClass* klass)
 {
-	TRACE("Entered %s", __FUNCTION__);
+    TRACE("Entered %s", __FUNCTION__);
     return new ImageInfo(static_cast<BrowserAdapter*>(npp->pdata));
 }
 void ImageInfo::PrvObjDeallocate(NPObject* obj)
 {
-	TRACE("Entered %s", __FUNCTION__);
-    delete static_cast<ImageInfo*>(obj); 
+    TRACE("Entered %s", __FUNCTION__);
+    delete static_cast<ImageInfo*>(obj);
 }
 void ImageInfo::PrvObjInvalidate(NPObject* obj)
 {
-	TRACE("Entered %s", __FUNCTION__);
+    TRACE("Entered %s", __FUNCTION__);
     static_cast<ImageInfo*>(obj)->invalidate();
 }
 
 bool ImageInfo::PrvObjHasMethod(NPObject* obj, NPIdentifier name)
 {
-	TRACE("Entered %s", __FUNCTION__);
+    TRACE("Entered %s", __FUNCTION__);
     return static_cast<ImageInfo*>(obj)->hasMethod(name);
 }
 bool ImageInfo::PrvObjInvoke(NPObject *obj, NPIdentifier name,
-                         const NPVariant *args, uint32_t argCount,
-                         NPVariant *result)
+                             const NPVariant *args, uint32_t argCount,
+                             NPVariant *result)
 {
-	TRACE("Entered %s", __FUNCTION__);
+    TRACE("Entered %s", __FUNCTION__);
     return static_cast<ImageInfo*>(obj)->invoke(name, args, argCount, result);
 }
 
-bool ImageInfo::PrvObjInvokeDefault(NPObject *obj, const NPVariant *args, 
-                                   uint32_t argCount, NPVariant *result)
+bool ImageInfo::PrvObjInvokeDefault(NPObject *obj, const NPVariant *args,
+                                    uint32_t argCount, NPVariant *result)
 {
-	TRACE("Entered %s", __FUNCTION__);
+    TRACE("Entered %s", __FUNCTION__);
     return static_cast<ImageInfo*>(obj)->invokeDefault(args, argCount, result);
 }
 bool ImageInfo::PrvObjHasProperty(NPObject *obj, NPIdentifier name)
 {
-	TRACE("Entered %s", __FUNCTION__);
+    TRACE("Entered %s", __FUNCTION__);
     return static_cast<ImageInfo*>(obj)->hasProperty(name);
 }
 bool ImageInfo::PrvObjGetProperty(NPObject *obj, NPIdentifier name, NPVariant *result)
 {
-	TRACE("Entered %s", __FUNCTION__);
+    TRACE("Entered %s", __FUNCTION__);
     return static_cast<ImageInfo*>(obj)->getProperty(name, result);
 }
 bool ImageInfo::PrvObjSetProperty(NPObject *obj, NPIdentifier name,
-                              const NPVariant *value)
+                                  const NPVariant *value)
 {
-	TRACE("Entered %s", __FUNCTION__);
+    TRACE("Entered %s", __FUNCTION__);
     return static_cast<ImageInfo*>(obj)->setProperty(name, value);
 }
 bool ImageInfo::PrvObjRemoveProperty(NPObject *obj, NPIdentifier name)
 {
-	TRACE("Entered %s", __FUNCTION__);
+    TRACE("Entered %s", __FUNCTION__);
     return static_cast<ImageInfo*>(obj)->removeProperty(name);
 }
 bool ImageInfo::PrvObjEnumerate(NPObject *obj, NPIdentifier **value,
-                            uint32_t *count)
+                                uint32_t *count)
 {
-	TRACE("Entered %s", __FUNCTION__);
+    TRACE("Entered %s", __FUNCTION__);
     return static_cast<ImageInfo*>(obj)->enumerate(value, count);
 }
 bool ImageInfo::PrvObjConstruct(NPObject *obj, const NPVariant *args,
-                            uint32_t argCount, NPVariant *result)
+                                uint32_t argCount, NPVariant *result)
 {
-	TRACE("Entered %s", __FUNCTION__);
+    TRACE("Entered %s", __FUNCTION__);
     return static_cast<ImageInfo*>(obj)->construct(args, argCount, result);
 }
 
@@ -148,9 +148,9 @@ bool ImageInfo::PrvObjConstruct(NPObject *obj, const NPVariant *args,
  * Constructor.
  */
 ImageInfo::ImageInfo(BrowserAdapter* adapter) :
-	 m_success(false), m_width(0), m_height(0)
+    m_success(false), m_width(0), m_height(0)
 {
-	TRACE("Entered %s", __FUNCTION__);
+    TRACE("Entered %s", __FUNCTION__);
     if (!sPropertyIdsInitialized) {
         AdapterBase::NPN_GetStringIdentifiers(sPropertyIdNames, kNumProperties, sPropertyIds);
         sPropertyIdsInitialized = true;
@@ -160,58 +160,58 @@ ImageInfo::ImageInfo(BrowserAdapter* adapter) :
 
 ImageInfo::~ImageInfo()
 {
-	TRACE("Entered %s", __FUNCTION__);
+    TRACE("Entered %s", __FUNCTION__);
 }
 
 void ImageInfo::initialize(bool success, const char* baseUri, const char* src, const char* title,
-		const char* altText, int32_t width, int32_t height, const char* mimeType)
+                           const char* altText, int32_t width, int32_t height, const char* mimeType)
 {
-	m_success = success;
-	if (NULL != baseUri) {
-		m_baseUri = baseUri;
-	}
-	m_src     = src;
-	if (NULL != title) {
-		m_title   = title;
-	}
-	if (NULL != altText) {
-		m_altText = altText;
-	}
-	m_width   = width;
-	m_height  = height;
-	if (NULL != mimeType) {
-		m_mimeType= mimeType;
-	}
+    m_success = success;
+    if (NULL != baseUri) {
+        m_baseUri = baseUri;
+    }
+    m_src     = src;
+    if (NULL != title) {
+        m_title   = title;
+    }
+    if (NULL != altText) {
+        m_altText = altText;
+    }
+    m_width   = width;
+    m_height  = height;
+    if (NULL != mimeType) {
+        m_mimeType= mimeType;
+    }
 }
 
 void ImageInfo::invalidate()
 {
-	TRACE("Entered %s", __FUNCTION__);
+    TRACE("Entered %s", __FUNCTION__);
 }
 
 bool ImageInfo::hasMethod(NPIdentifier name)
 {
-	TRACE("Entered %s", __FUNCTION__);
+    TRACE("Entered %s", __FUNCTION__);
     return false;
 }
 
 bool ImageInfo::invoke(NPIdentifier name, const NPVariant *args,
-                      uint32_t argCount, NPVariant *rm_latitudeesult)
+                       uint32_t argCount, NPVariant *rm_latitudeesult)
 {
-	TRACE("Entered %s", __FUNCTION__);
+    TRACE("Entered %s", __FUNCTION__);
     return false;
 }
 
 bool ImageInfo::invokeDefault(const NPVariant *args,
-                             uint32_t argCount, NPVariant *result)
+                              uint32_t argCount, NPVariant *result)
 {
-	TRACE("Entered %s", __FUNCTION__);
+    TRACE("Entered %s", __FUNCTION__);
     return false;
 }
 
 bool ImageInfo::hasProperty(NPIdentifier name)
 {
-	TRACE("Entered %s", __FUNCTION__);
+    TRACE("Entered %s", __FUNCTION__);
     for (int i = 0; i < kNumProperties; i++) {
         if (sPropertyIds[i] == name) {
             return true;
@@ -222,142 +222,142 @@ bool ImageInfo::hasProperty(NPIdentifier name)
 
 bool ImageInfo::getProperty(NPIdentifier name, NPVariant *result)
 {
-	TRACE("Entered %s", __FUNCTION__);
-    if (NULL == result){
+    TRACE("Entered %s", __FUNCTION__);
+    if (NULL == result) {
         return false;
     }
-     
+
     if (name == sPropertyIds[PropertySuccess]) {
         BOOLEAN_TO_NPVARIANT(m_success, *result);
         return true;
     }
     else if (name == sPropertyIds[PropertyBaseUri]) {
-		if (m_baseUri.empty())
-       	 	NULL_TO_NPVARIANT(*result);
-		else
-       	 	STRINGZ_TO_NPVARIANT(strdup(m_baseUri.c_str()), *result);
+        if (m_baseUri.empty())
+            NULL_TO_NPVARIANT(*result);
+        else
+            STRINGZ_TO_NPVARIANT(strdup(m_baseUri.c_str()), *result);
         return true;
     }
-	else if (name == sPropertyIds[PropertySrc]) {
-		if (m_src.empty())
-       	 	NULL_TO_NPVARIANT(*result);
-		else
-       	 	STRINGZ_TO_NPVARIANT(strdup(m_src.c_str()), *result);
+    else if (name == sPropertyIds[PropertySrc]) {
+        if (m_src.empty())
+            NULL_TO_NPVARIANT(*result);
+        else
+            STRINGZ_TO_NPVARIANT(strdup(m_src.c_str()), *result);
         return true;
     }
     else if (name == sPropertyIds[PropertyAltText]) {
-		if (m_altText.empty())
-       	 	NULL_TO_NPVARIANT(*result);
-		else
-        	STRINGZ_TO_NPVARIANT(strdup(m_altText.c_str()), *result);
+        if (m_altText.empty())
+            NULL_TO_NPVARIANT(*result);
+        else
+            STRINGZ_TO_NPVARIANT(strdup(m_altText.c_str()), *result);
         return true;
     }
     else if (name == sPropertyIds[PropertyMimeType]) {
-		if (m_mimeType.empty())
-       	 	NULL_TO_NPVARIANT(*result);
-		else
-        	STRINGZ_TO_NPVARIANT(strdup(m_mimeType.c_str()), *result);
+        if (m_mimeType.empty())
+            NULL_TO_NPVARIANT(*result);
+        else
+            STRINGZ_TO_NPVARIANT(strdup(m_mimeType.c_str()), *result);
         return true;
     }
-	else if (name == sPropertyIds[PropertyTitle]) {
-		if (m_altText.empty())
-       	 	NULL_TO_NPVARIANT(*result);
-		else
-        	STRINGZ_TO_NPVARIANT(strdup(m_title.c_str()), *result);
+    else if (name == sPropertyIds[PropertyTitle]) {
+        if (m_altText.empty())
+            NULL_TO_NPVARIANT(*result);
+        else
+            STRINGZ_TO_NPVARIANT(strdup(m_title.c_str()), *result);
         return true;
     }
-	else if (name == sPropertyIds[PropertyWidth]) {
+    else if (name == sPropertyIds[PropertyWidth]) {
         DOUBLE_TO_NPVARIANT(m_width, *result);
         return true;
     }
-	else if (name == sPropertyIds[PropertyHeight]) {
+    else if (name == sPropertyIds[PropertyHeight]) {
         DOUBLE_TO_NPVARIANT(m_height, *result);
         return true;
     }
-    
+
     return false;
 }
 
 bool ImageInfo::setProperty(NPIdentifier name, const NPVariant *value)
 {
-	TRACE("Entered %s", __FUNCTION__);
-	if (name == sPropertyIds[PropertySuccess]) {
-		if (NPVARIANT_IS_BOOLEAN(*value)) {
-			m_success = NPVARIANT_TO_BOOLEAN(*value);
-        	return true;
-		}
+    TRACE("Entered %s", __FUNCTION__);
+    if (name == sPropertyIds[PropertySuccess]) {
+        if (NPVARIANT_IS_BOOLEAN(*value)) {
+            m_success = NPVARIANT_TO_BOOLEAN(*value);
+            return true;
+        }
     }
     else if (name == sPropertyIds[PropertyBaseUri]) {
         if (NPVARIANT_IS_STRING(*value)) {
-			char* szval = AdapterBase::NPStringToString(NPVARIANT_TO_STRING(*value));
-			m_baseUri = szval;
-			::free(szval);
-        	return true;
-		}
+            char* szval = AdapterBase::NPStringToString(NPVARIANT_TO_STRING(*value));
+            m_baseUri = szval;
+            ::free(szval);
+            return true;
+        }
     }
-	else if (name == sPropertyIds[PropertySrc]) {
+    else if (name == sPropertyIds[PropertySrc]) {
         if (NPVARIANT_IS_STRING(*value)) {
-			char* szval = AdapterBase::NPStringToString(NPVARIANT_TO_STRING(*value));
-			m_src = szval;
-			::free(szval);
-        	return true;
-		}
+            char* szval = AdapterBase::NPStringToString(NPVARIANT_TO_STRING(*value));
+            m_src = szval;
+            ::free(szval);
+            return true;
+        }
     }
     else if (name == sPropertyIds[PropertyAltText]) {
         if (NPVARIANT_IS_STRING(*value)) {
-			char* szval = AdapterBase::NPStringToString(NPVARIANT_TO_STRING(*value));
-			m_altText = szval;
-			::free(szval);
-        	return true;
-		}
+            char* szval = AdapterBase::NPStringToString(NPVARIANT_TO_STRING(*value));
+            m_altText = szval;
+            ::free(szval);
+            return true;
+        }
     }
     else if (name == sPropertyIds[PropertyMimeType]) {
         if (NPVARIANT_IS_STRING(*value)) {
-			char* szval = AdapterBase::NPStringToString(NPVARIANT_TO_STRING(*value));
-			m_mimeType = szval;
-			::free(szval);
-        	return true;
-		}
+            char* szval = AdapterBase::NPStringToString(NPVARIANT_TO_STRING(*value));
+            m_mimeType = szval;
+            ::free(szval);
+            return true;
+        }
     }
-	else if (name == sPropertyIds[PropertyTitle]) {
+    else if (name == sPropertyIds[PropertyTitle]) {
         if (NPVARIANT_IS_STRING(*value)) {
-			char* szval = AdapterBase::NPStringToString(NPVARIANT_TO_STRING(*value));
-			m_title = szval;
-			::free(szval);
-        	return true;
-		}
+            char* szval = AdapterBase::NPStringToString(NPVARIANT_TO_STRING(*value));
+            m_title = szval;
+            ::free(szval);
+            return true;
+        }
     }
-	else if (name == sPropertyIds[PropertyWidth]) {
-		if (NPVARIANT_IS_DOUBLE(*value)) {
-			m_width = NPVARIANT_TO_DOUBLE(*value);
-        	return true;
-		}
+    else if (name == sPropertyIds[PropertyWidth]) {
+        if (NPVARIANT_IS_DOUBLE(*value)) {
+            m_width = NPVARIANT_TO_DOUBLE(*value);
+            return true;
+        }
     }
-	else if (name == sPropertyIds[PropertyHeight]) {
-		if (NPVARIANT_IS_DOUBLE(*value)) {
-			m_height = NPVARIANT_TO_DOUBLE(*value);
-        	return true;
-		}
+    else if (name == sPropertyIds[PropertyHeight]) {
+        if (NPVARIANT_IS_DOUBLE(*value)) {
+            m_height = NPVARIANT_TO_DOUBLE(*value);
+            return true;
+        }
     }
     return false;
 }
 
 bool ImageInfo::removeProperty(NPIdentifier name)
 {
-	TRACE("Entered %s", __FUNCTION__);
+    TRACE("Entered %s", __FUNCTION__);
     return false;
 }
 
 bool ImageInfo::enumerate(NPIdentifier **value, uint32_t *count)
 {
-	TRACE("Entered %s", __FUNCTION__);
+    TRACE("Entered %s", __FUNCTION__);
     return false;
 }
 
 bool ImageInfo::construct(const NPVariant *args, int32_t argCount,
-                         NPVariant *result)
+                          NPVariant *result)
 {
-	TRACE("Entered %s", __FUNCTION__);
+    TRACE("Entered %s", __FUNCTION__);
     return false;
 }
 

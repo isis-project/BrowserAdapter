@@ -28,13 +28,13 @@ LICENSE@@@ */
 #include "Debug.h"
 
 static const char *sPropertyIdNames[] = {
-	"type",
-	"pageX",
-	"pageY",
-	"altKey",
-	"shiftKey",
-	"ctrlKey",
-	"metaKey"
+    "type",
+    "pageX",
+    "pageY",
+    "altKey",
+    "shiftKey",
+    "ctrlKey",
+    "metaKey"
 };
 
 static const int kNumProperties = G_N_ELEMENTS(sPropertyIdNames);
@@ -43,13 +43,13 @@ static NPIdentifier sPropertyIds[kNumProperties];
 static bool sPropertyIdsInitialized = false;
 
 enum PropertyId {
-	PropertyType = 0,
-	PropertyPageX,
-	PropertyPageY,
-	PropertyAltKey,
-	PropertyShiftKey,
-	PropertyCtrlKey,
-	PropertyMetaKey
+    PropertyType = 0,
+    PropertyPageX,
+    PropertyPageY,
+    PropertyAltKey,
+    PropertyShiftKey,
+    PropertyCtrlKey,
+    PropertyMetaKey
 };
 
 /**
@@ -72,88 +72,88 @@ NPClass NPObjectEvent::sNPObjectEventClass = {
 };
 
 // NPObjectEvent object static hooks implementation
-// that call actual instance methods 
+// that call actual instance methods
 NPObject* NPObjectEvent::PrvObjAllocate(NPP npp, NPClass* klass)
 {
-	//TRACEF("Entered %s", __FUNCTION__);
+    //TRACEF("Entered %s", __FUNCTION__);
     return new NPObjectEvent(static_cast<BrowserAdapter*>(npp->pdata));
 }
 void NPObjectEvent::PrvObjDeallocate(NPObject* obj)
 {
-	//TRACEF("Entered %s", __FUNCTION__);
-    delete static_cast<NPObjectEvent*>(obj); 
+    //TRACEF("Entered %s", __FUNCTION__);
+    delete static_cast<NPObjectEvent*>(obj);
 }
 
 void NPObjectEvent::PrvObjInvalidate(NPObject* obj)
 {
-	/* do nothing */
+    /* do nothing */
 }
 
 bool NPObjectEvent::PrvObjHasMethod(NPObject* obj, NPIdentifier name)
 {
-	/* unsupported */
-	return false;
+    /* unsupported */
+    return false;
 }
 bool NPObjectEvent::PrvObjInvoke(NPObject *obj, NPIdentifier name,
-                         const NPVariant *args, uint32_t argCount,
-                         NPVariant *result)
+                                 const NPVariant *args, uint32_t argCount,
+                                 NPVariant *result)
 {
-	/* unsupported */
-	return false;
+    /* unsupported */
+    return false;
 }
 
-bool NPObjectEvent::PrvObjInvokeDefault(NPObject *obj, const NPVariant *args, 
-                                   uint32_t argCount, NPVariant *result)
+bool NPObjectEvent::PrvObjInvokeDefault(NPObject *obj, const NPVariant *args,
+                                        uint32_t argCount, NPVariant *result)
 {
-	/* unsupported */
-	return false;
+    /* unsupported */
+    return false;
 }
 
 bool NPObjectEvent::PrvObjHasProperty(NPObject *obj, NPIdentifier name)
 {
-	//TRACEF("Entered %s", __FUNCTION__);
+    //TRACEF("Entered %s", __FUNCTION__);
     return static_cast<NPObjectEvent*>(obj)->hasProperty(name);
 }
 
 bool NPObjectEvent::PrvObjGetProperty(NPObject *obj, NPIdentifier name, NPVariant *result)
 {
-	//TRACEF("Entered %s", __FUNCTION__);
+    //TRACEF("Entered %s", __FUNCTION__);
     return static_cast<NPObjectEvent*>(obj)->getProperty(name, result);
 }
 
 bool NPObjectEvent::PrvObjSetProperty(NPObject *obj, NPIdentifier name,
-                              const NPVariant *value)
+                                      const NPVariant *value)
 {
-	/* unsupported */
-	return false;
+    /* unsupported */
+    return false;
 }
 
 bool NPObjectEvent::PrvObjRemoveProperty(NPObject *obj, NPIdentifier name)
 {
-	/* unsupported */
-	return false;
+    /* unsupported */
+    return false;
 }
 
 bool NPObjectEvent::PrvObjEnumerate(NPObject *obj, NPIdentifier **value,
-                            uint32_t *count)
+                                    uint32_t *count)
 {
-	/* unsupported */
-	return false;
+    /* unsupported */
+    return false;
 }
 
 bool NPObjectEvent::PrvObjConstruct(NPObject *obj, const NPVariant *args,
-                            uint32_t argCount, NPVariant *result)
+                                    uint32_t argCount, NPVariant *result)
 {
-	/* unsupported */
-	return false;
+    /* unsupported */
+    return false;
 }
 
 NPObjectEvent::NPObjectEvent(BrowserAdapter *adapter)
 {
-	//TRACEF("Entered %s", __FUNCTION__);
+    //TRACEF("Entered %s", __FUNCTION__);
     if (!sPropertyIdsInitialized) {
         AdapterBase::NPN_GetStringIdentifiers(sPropertyIdNames, kNumProperties,
-				sPropertyIds);
+                                              sPropertyIds);
         sPropertyIdsInitialized = true;
         TRACEF("NPObjectEvent sPropertyIdsInitialized == true");
     }
@@ -161,23 +161,23 @@ NPObjectEvent::NPObjectEvent(BrowserAdapter *adapter)
 
 NPObjectEvent::~NPObjectEvent()
 {
-	//TRACEF("Entered %s", __FUNCTION__);
+    //TRACEF("Entered %s", __FUNCTION__);
 }
 
 void NPObjectEvent::initialize(const char *type, int pageX, int pageY,
-		int modifiers)
+                               int modifiers)
 {
-	if (type != NULL) {
-		m_type = type;
-	}
-	m_pageX = pageX;
-	m_pageY = pageY;
-	m_modifiers = modifiers;
+    if (type != NULL) {
+        m_type = type;
+    }
+    m_pageX = pageX;
+    m_pageY = pageY;
+    m_modifiers = modifiers;
 }
 
 bool NPObjectEvent::hasProperty(NPIdentifier name)
 {
-	//TRACEF("Entered %s", __FUNCTION__);
+    //TRACEF("Entered %s", __FUNCTION__);
     for (int i = 0; i < kNumProperties; i++) {
         if (sPropertyIds[i] == name) {
             return true;
@@ -188,45 +188,45 @@ bool NPObjectEvent::hasProperty(NPIdentifier name)
 
 bool NPObjectEvent::getProperty(NPIdentifier name, NPVariant *result)
 {
-	//TRACEF("Entered %s", __FUNCTION__);
-	if (result == NULL) {
-		return false;
-	}
+    //TRACEF("Entered %s", __FUNCTION__);
+    if (result == NULL) {
+        return false;
+    }
 
-	if (sPropertyIds[PropertyType] == name) {
-		if (m_type.empty()) {
-			NULL_TO_NPVARIANT(*result);
-		} else {
-			STRINGZ_TO_NPVARIANT(strdup(m_type.c_str()), *result);
-		}
-		return true;
+    if (sPropertyIds[PropertyType] == name) {
+        if (m_type.empty()) {
+            NULL_TO_NPVARIANT(*result);
+        } else {
+            STRINGZ_TO_NPVARIANT(strdup(m_type.c_str()), *result);
+        }
+        return true;
 
-	} else if (sPropertyIds[PropertyPageX] == name) {
-		double v(m_pageX);
-		DOUBLE_TO_NPVARIANT(v, *result);
-		return true;
+    } else if (sPropertyIds[PropertyPageX] == name) {
+        double v(m_pageX);
+        DOUBLE_TO_NPVARIANT(v, *result);
+        return true;
 
-	} else if (sPropertyIds[PropertyPageY] == name) {
-		double v(m_pageY);
-		DOUBLE_TO_NPVARIANT(v, *result);
-		return true;
-	} else if (sPropertyIds[PropertyAltKey] == name) {
-		bool b(m_modifiers & npPalmAltKeyModifier);
-		BOOLEAN_TO_NPVARIANT(b, *result);
-		return true;
-	} else if (sPropertyIds[PropertyShiftKey] == name) {
-		bool b(m_modifiers & npPalmShiftKeyModifier);
-		BOOLEAN_TO_NPVARIANT(b, *result);
-		return true;
-	} else if (sPropertyIds[PropertyCtrlKey] == name) {
-		bool b(m_modifiers & npPalmCtrlKeyModifier);
-		BOOLEAN_TO_NPVARIANT(b, *result);
-		return true;
-	} else if (sPropertyIds[PropertyMetaKey] == name) {
-		bool b(m_modifiers & npPalmMetaKeyModifier);
-		BOOLEAN_TO_NPVARIANT(b, *result);
-		return true;
-	}
+    } else if (sPropertyIds[PropertyPageY] == name) {
+        double v(m_pageY);
+        DOUBLE_TO_NPVARIANT(v, *result);
+        return true;
+    } else if (sPropertyIds[PropertyAltKey] == name) {
+        bool b(m_modifiers & npPalmAltKeyModifier);
+        BOOLEAN_TO_NPVARIANT(b, *result);
+        return true;
+    } else if (sPropertyIds[PropertyShiftKey] == name) {
+        bool b(m_modifiers & npPalmShiftKeyModifier);
+        BOOLEAN_TO_NPVARIANT(b, *result);
+        return true;
+    } else if (sPropertyIds[PropertyCtrlKey] == name) {
+        bool b(m_modifiers & npPalmCtrlKeyModifier);
+        BOOLEAN_TO_NPVARIANT(b, *result);
+        return true;
+    } else if (sPropertyIds[PropertyMetaKey] == name) {
+        bool b(m_modifiers & npPalmMetaKeyModifier);
+        BOOLEAN_TO_NPVARIANT(b, *result);
+        return true;
+    }
 
-	return false;
+    return false;
 }

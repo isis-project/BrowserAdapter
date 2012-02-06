@@ -26,29 +26,29 @@ LICENSE@@@ */
 
 struct BrowserScrollableLayer
 {
-	// id of the layer
-	uintptr_t id;
-	
-	// absolute positioning of the rectangle in page coordinates
-	BrowserRect bounds;
+    // id of the layer
+    uintptr_t id;
 
-	// Content dimensions and scroll position inside the layer	
-	int contentX;
-	int contentY;
-	int contentWidth;
-	int contentHeight;
+    // absolute positioning of the rectangle in page coordinates
+    BrowserRect bounds;
+
+    // Content dimensions and scroll position inside the layer
+    int contentX;
+    int contentY;
+    int contentWidth;
+    int contentHeight;
 };
 
 typedef std::map<uintptr_t, BrowserScrollableLayer> BrowserScrollableLayerMap;
 
 struct BrowserScrollableLayerScrollSession
 {
-	bool isActive;
-	uintptr_t layer;
-	int contentXAtMouseDown;
-	int contentYAtMouseDown;
-	int mouseDownX;
-	int mouseDownY;
+    bool isActive;
+    uintptr_t layer;
+    int contentXAtMouseDown;
+    int contentYAtMouseDown;
+    int mouseDownX;
+    int mouseDownY;
 };
 
 #endif /* BROWSERSCROLLABLELAYER_H */

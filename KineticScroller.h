@@ -47,7 +47,7 @@ public:
     void setContentDimensions(int width, int height);
 
     void scrollTo(int x, int y, bool animate);
-    
+
     void handleMouseDown(int x, int y);
     void handleMouseMove(int x, int y);
     void handleMouseUp(int x, int y);

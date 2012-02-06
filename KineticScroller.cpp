@@ -23,7 +23,7 @@ LICENSE@@@ */
 
 #include "KineticScroller.h"
 
-/* 
+/*
  * The basis for this code comes from the enyo framework ScrollMath.js file,
  * which is located in enyo in framework/source/base/base/scroller/ScrollMath.js.
  * A few of the variables are named slightly differently in this file:
@@ -117,7 +117,7 @@ KineticScroller::KineticScroller(GMainContext* glibCtxt)
 
 KineticScroller::~KineticScroller()
 {
-	stop();
+    stop();
 }
 
 double KineticScroller::getTime()
@@ -255,8 +255,8 @@ gboolean KineticScroller::timeoutCb(gpointer data)
     // keep a moving average
     dtf.push(dt);
     if (++fs == 20) {
-            fs--;
-            ft -= dtf.shift();
+        fs--;
+        ft -= dtf.shift();
     }
     // make this value available to something
     this.fps = (fs * 1000 / ft).toFixed(1) + " fps";
@@ -318,9 +318,9 @@ void KineticScroller::setViewportDimensions(int width, int height)
     m_contentWidth = MAX(m_viewportWidth, m_contentWidth);
     m_contentHeight = MAX(m_viewportHeight, m_contentHeight);
 
-	m_lastMouseX = m_scrollX;
-	m_lastMouseY = m_scrollY;
-	start();
+    m_lastMouseX = m_scrollX;
+    m_lastMouseY = m_scrollY;
+    start();
 
     TRACEF("viewport dimensions (%f x %f), conent dimensions (%f x %f)\n", m_viewportWidth, m_viewportHeight, m_contentWidth, m_contentHeight);
 }
@@ -347,7 +347,7 @@ void KineticScroller::scrollTo(int x, int y, bool animate)
     } else {
         m_scrollY = m_lastMouseY = y;
         m_scrollX = m_lastMouseX = x;
-		start();
+        start();
     }
 }
 
@@ -437,15 +437,15 @@ void KineticScroller::handleMouseMove(int x, int y)
     }
 
     if (m_dragging) {
- #if 0
-	int dx = x - m_lastMouseX;
-	int dy = y - m_lastMouseY;
+#if 0
+        int dx = x - m_lastMouseX;
+        int dy = y - m_lastMouseY;
 
-	m_lastMouseX = x;
-	m_lastMouseY = y;
+        m_lastMouseX = x;
+        m_lastMouseY = y;
 
-	m_scrollX += dx;
-	m_scrollY += dy;
+        m_scrollX += dx;
+        m_scrollY += dy;
 #endif
         double dy = y - m_my; // TODO: vertical
         m_uy = dy + m_py;
@@ -489,10 +489,10 @@ void KineticScroller::animate()
 
 void KineticScroller::start()
 {
-     if (!m_timerSource) {
-         animate();
-         //doScrollStart();
-     }
+    if (!m_timerSource) {
+        animate();
+        //doScrollStart();
+    }
 }
 
 void KineticScroller::handleMouseUp(int x, int y)
@@ -507,7 +507,7 @@ void KineticScroller::handleMouseUp(int x, int y)
         m_scrollX = m_ux;
         m_lastMouseX = m_scrollX - (m_scrollX - m_lastMouseX) * kSimulatedFlickVelocity;
 
-	m_listener->scrollTo(m_scrollX, m_scrollY);
+        m_listener->scrollTo(m_scrollX, m_scrollY);
 #endif
 
         m_dragging = false;
@@ -519,32 +519,32 @@ void KineticScroller::handleMouseFlick(int xVel, int yVel)
 {
     TRACEF("velocity: (%d, %d)\n", xVel, yVel);
 
-	if (m_dragging) {
+    if (m_dragging) {
 
-		if (m_scrollLock == ScrollLockInvalid) {
-			if (abs(xVel) > abs(yVel))
-				m_scrollLock = ScrollLockHoriz;
-			else
-				m_scrollLock = ScrollLockVert;
-		}
+        if (m_scrollLock == ScrollLockInvalid) {
+            if (abs(xVel) > abs(yVel))
+                m_scrollLock = ScrollLockHoriz;
+            else
+                m_scrollLock = ScrollLockVert;
+        }
 
-		switch (m_scrollLock) {
-		case ScrollLockHoriz:
-			yVel = 0;
-			break;
-		case ScrollLockVert:
-			xVel = 0;
-			break;
-		default:
-			break;
-		}			
+        switch (m_scrollLock) {
+        case ScrollLockHoriz:
+            yVel = 0;
+            break;
+        case ScrollLockVert:
+            xVel = 0;
+            break;
+        default:
+            break;
+        }
 
-		m_scrollY = m_lastMouseY + yVel * kFlickScalar;
-		m_scrollX = m_lastMouseX + xVel * kFlickScalar;
-		m_listener->scrollTo(m_scrollX, m_scrollY);
-                m_dragging = false;
-		start();
-	}
+        m_scrollY = m_lastMouseY + yVel * kFlickScalar;
+        m_scrollX = m_lastMouseX + xVel * kFlickScalar;
+        m_listener->scrollTo(m_scrollX, m_scrollY);
+        m_dragging = false;
+        start();
+    }
 }
 
 void KineticScroller::stop()
