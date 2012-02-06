@@ -37,43 +37,43 @@ class BrowserAdapter;
  */
 class NPObjectEvent : public NPObject
 {
-	public:
-		NPObjectEvent(BrowserAdapter *adapter);
-		~NPObjectEvent();
+public:
+    NPObjectEvent(BrowserAdapter *adapter);
+    ~NPObjectEvent();
 
-		static NPClass sNPObjectEventClass;
+    static NPClass sNPObjectEventClass;
 
-		void initialize(const char *type, int pageX, int pageY, int modifiers);
+    void initialize(const char *type, int pageX, int pageY, int modifiers);
 
-		bool hasProperty(NPIdentifier name);
-		bool getProperty(NPIdentifier name, NPVariant *result);
+    bool hasProperty(NPIdentifier name);
+    bool getProperty(NPIdentifier name, NPVariant *result);
 
-		// Private NP Object callbacks, used for JavaScript integration.  
-		// (these translate into appropriate non-static method calls).
-		static NPObject* PrvObjAllocate(NPP npp, NPClass* klass);
-		static void PrvObjDeallocate(NPObject* obj);
-		static void PrvObjInvalidate(NPObject* obj);
-		static bool PrvObjHasMethod(NPObject* obj, NPIdentifier name);
-		static bool PrvObjInvoke(NPObject *obj, NPIdentifier name,
-				const NPVariant *args, uint32_t argCount, NPVariant *result);
-		static bool PrvObjInvokeDefault(NPObject *obj, const NPVariant *args,
-				uint32_t argCount, NPVariant *result);
-		static bool PrvObjHasProperty(NPObject *obj, NPIdentifier name);
-		static bool PrvObjGetProperty(NPObject *obj, NPIdentifier name,
-				NPVariant *result);
-		static bool PrvObjSetProperty(NPObject *obj, NPIdentifier name,
-				const NPVariant *value);
-		static bool PrvObjRemoveProperty(NPObject *obj, NPIdentifier name);
-		static bool PrvObjEnumerate(NPObject *obj, NPIdentifier **value,
-				uint32_t *count);
-		static bool PrvObjConstruct(NPObject *obj, const NPVariant *args,
-				uint32_t argCount, NPVariant *result);
+    // Private NP Object callbacks, used for JavaScript integration.
+    // (these translate into appropriate non-static method calls).
+    static NPObject* PrvObjAllocate(NPP npp, NPClass* klass);
+    static void PrvObjDeallocate(NPObject* obj);
+    static void PrvObjInvalidate(NPObject* obj);
+    static bool PrvObjHasMethod(NPObject* obj, NPIdentifier name);
+    static bool PrvObjInvoke(NPObject *obj, NPIdentifier name,
+                             const NPVariant *args, uint32_t argCount, NPVariant *result);
+    static bool PrvObjInvokeDefault(NPObject *obj, const NPVariant *args,
+                                    uint32_t argCount, NPVariant *result);
+    static bool PrvObjHasProperty(NPObject *obj, NPIdentifier name);
+    static bool PrvObjGetProperty(NPObject *obj, NPIdentifier name,
+                                  NPVariant *result);
+    static bool PrvObjSetProperty(NPObject *obj, NPIdentifier name,
+                                  const NPVariant *value);
+    static bool PrvObjRemoveProperty(NPObject *obj, NPIdentifier name);
+    static bool PrvObjEnumerate(NPObject *obj, NPIdentifier **value,
+                                uint32_t *count);
+    static bool PrvObjConstruct(NPObject *obj, const NPVariant *args,
+                                uint32_t argCount, NPVariant *result);
 
-	private:
-		std::string m_type;
-		int m_pageX;
-		int m_pageY;
-		int m_modifiers;
+private:
+    std::string m_type;
+    int m_pageX;
+    int m_pageY;
+    int m_modifiers;
 };
 
 #endif

@@ -21,21 +21,21 @@ LICENSE@@@ */
 
 struct BrowserMetaViewport
 {
-	BrowserMetaViewport() {
-		initialScale = 1.0;
-		minimumScale = 1.0;
-		maximumScale = 4.0;
-		width = 960;
-		height = 1600;
-		userScalable = true;
-	}
-	
-	double initialScale;
-	double minimumScale;
-	double maximumScale;
-	int width;
-	int height;
-	bool userScalable;
+    BrowserMetaViewport() {
+        initialScale = 1.0;
+        minimumScale = 1.0;
+        maximumScale = 4.0;
+        width = 960;
+        height = 1600;
+        userScalable = true;
+    }
+
+    double initialScale;
+    double minimumScale;
+    double maximumScale;
+    int width;
+    int height;
+    bool userScalable;
 };
 
 

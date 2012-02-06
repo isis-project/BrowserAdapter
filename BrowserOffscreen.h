@@ -30,41 +30,51 @@ class BrowserOffscreen
 {
 public:
 
-	static BrowserOffscreen* create();
-	static BrowserOffscreen* attach(int key, int size);	
-	~BrowserOffscreen();
+    static BrowserOffscreen* create();
+    static BrowserOffscreen* attach(int key, int size);
+    ~BrowserOffscreen();
 
-	inline IpcBuffer* ipcBuffer() const { return m_ipcBuffer; }
-	inline int key() const { return m_ipcBuffer->key(); }
-	inline int size() const { return m_ipcBuffer->size(); }
-	inline BrowserOffscreenInfo* header() const { return m_header; }
+    inline IpcBuffer* ipcBuffer() const {
+        return m_ipcBuffer;
+    }
+    inline int key() const {
+        return m_ipcBuffer->key();
+    }
+    inline int size() const {
+        return m_ipcBuffer->size();
+    }
+    inline BrowserOffscreenInfo* header() const {
+        return m_header;
+    }
 
-	bool matchesParams(BrowserOffscreenCalculations* calc) const;
-	void updateParams(BrowserOffscreenCalculations* calc);
-	bool matchesParams(BrowserOffscreen* other) const;
-	
-	PGSurface* surface();
-	void clear();
-	void copyFrom(BrowserOffscreen* other, BrowserRect* rect=NULL);
+    bool matchesParams(BrowserOffscreenCalculations* calc) const;
+    void updateParams(BrowserOffscreenCalculations* calc);
+    bool matchesParams(BrowserOffscreen* other) const;
 
-	unsigned char* rasterBuffer() const { return m_buffer; }
-	int rasterSize() const;
+    PGSurface* surface();
+    void clear();
+    void copyFrom(BrowserOffscreen* other, BrowserRect* rect=NULL);
+
+    unsigned char* rasterBuffer() const {
+        return m_buffer;
+    }
+    int rasterSize() const;
 
 private:
 
-	BrowserOffscreen(IpcBuffer* buffer);	
-	void resetBuffer();
+    BrowserOffscreen(IpcBuffer* buffer);
+    void resetBuffer();
 
-	IpcBuffer* m_ipcBuffer;
-	unsigned char* m_buffer;
-	BrowserOffscreenInfo* m_header;
-	PGSurface* m_surface;
+    IpcBuffer* m_ipcBuffer;
+    unsigned char* m_buffer;
+    BrowserOffscreenInfo* m_header;
+    PGSurface* m_surface;
 
-	int m_contentWidth;
-	int m_contentHeight;
-	int m_viewportWidth;
-	int m_viewportHeight;
+    int m_contentWidth;
+    int m_contentHeight;
+    int m_viewportWidth;
+    int m_viewportHeight;
 };
-	
+
 
 #endif /* BROWSEROFFSCREEN_H */

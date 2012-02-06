@@ -39,79 +39,79 @@ class BrowserAdapter;
 
 class JsonNPObject : public NPObject
 {
-	public:
-		JsonNPObject(BrowserAdapter *adapter);
-		~JsonNPObject();
+public:
+    JsonNPObject(BrowserAdapter *adapter);
+    ~JsonNPObject();
 
-		/**
-		 * Defines methods for the object.
-		 */
-		static NPClass sJsonNPObjectClass;
+    /**
+     * Defines methods for the object.
+     */
+    static NPClass sJsonNPObjectClass;
 
-		/**
-		 * Initializes the object with JSON.
-		 * \param json Json that represents the object.
-		 * \return True if successful.
-		 */
-		bool initialize(pbnjson::JSchemaFile &schema, const char *json);
+    /**
+     * Initializes the object with JSON.
+     * \param json Json that represents the object.
+     * \return True if successful.
+     */
+    bool initialize(pbnjson::JSchemaFile &schema, const char *json);
 
-		/**
-		 * Initialize the object with a parsed DOM
-		 * \param dom Representation of the DOM.
-		 */
-		bool initialize(pbnjson::JValue &dom);
+    /**
+     * Initialize the object with a parsed DOM
+     * \param dom Representation of the DOM.
+     */
+    bool initialize(pbnjson::JValue &dom);
 
-	private:
-		/**
-		 * \name NPClass methods
-		 */
-		/*@{*/
-		static NPObject* PrvObjAllocate(NPP npp, NPClass* klass);
-		static void PrvObjDeallocate(NPObject* obj);
-		static void PrvObjInvalidate(NPObject* obj);
-		static bool PrvObjHasMethod(NPObject* obj, NPIdentifier name);
-		static bool PrvObjInvoke(NPObject *obj, NPIdentifier name,
-				const NPVariant *args, uint32_t argCount, NPVariant *result);
-		static bool PrvObjInvokeDefault(NPObject *obj, const NPVariant *args,
-				uint32_t argCount, NPVariant *result);
-		static bool PrvObjHasProperty(NPObject *obj, NPIdentifier name);
-		static bool PrvObjGetProperty(NPObject *obj, NPIdentifier name,
-				NPVariant *result);
-		static bool PrvObjSetProperty(NPObject *obj, NPIdentifier name,
-				const NPVariant *value);
-		static bool PrvObjRemoveProperty(NPObject *obj, NPIdentifier name);
-		static bool PrvObjEnumerate(NPObject *obj, NPIdentifier **value,
-				uint32_t *count);
-		static bool PrvObjConstruct(NPObject *obj, const NPVariant *args,
-				uint32_t argCount, NPVariant *result);
-		/*@}*/
+private:
+    /**
+     * \name NPClass methods
+     */
+    /*@{*/
+    static NPObject* PrvObjAllocate(NPP npp, NPClass* klass);
+    static void PrvObjDeallocate(NPObject* obj);
+    static void PrvObjInvalidate(NPObject* obj);
+    static bool PrvObjHasMethod(NPObject* obj, NPIdentifier name);
+    static bool PrvObjInvoke(NPObject *obj, NPIdentifier name,
+                             const NPVariant *args, uint32_t argCount, NPVariant *result);
+    static bool PrvObjInvokeDefault(NPObject *obj, const NPVariant *args,
+                                    uint32_t argCount, NPVariant *result);
+    static bool PrvObjHasProperty(NPObject *obj, NPIdentifier name);
+    static bool PrvObjGetProperty(NPObject *obj, NPIdentifier name,
+                                  NPVariant *result);
+    static bool PrvObjSetProperty(NPObject *obj, NPIdentifier name,
+                                  const NPVariant *value);
+    static bool PrvObjRemoveProperty(NPObject *obj, NPIdentifier name);
+    static bool PrvObjEnumerate(NPObject *obj, NPIdentifier **value,
+                                uint32_t *count);
+    static bool PrvObjConstruct(NPObject *obj, const NPVariant *args,
+                                uint32_t argCount, NPVariant *result);
+    /*@}*/
 
-		/**
-		 * \name Instance methods that implement the NPClass methods.
-		 */
-		/*@{*/
-		bool hasProperty(NPIdentifier name);
-		bool getProperty(NPIdentifier name, NPVariant *result);
-		/*@}*/
+    /**
+     * \name Instance methods that implement the NPClass methods.
+     */
+    /*@{*/
+    bool hasProperty(NPIdentifier name);
+    bool getProperty(NPIdentifier name, NPVariant *result);
+    /*@}*/
 
-	private:
-		/**
-		 * \brief DOM representation of the parsed Json input.
-		 */
-		pbnjson::JValue m_dom;
+private:
+    /**
+     * \brief DOM representation of the parsed Json input.
+     */
+    pbnjson::JValue m_dom;
 
-		/**
-		 * \brief Map of this object's properties that are objects
-		 * themselves.
-		 * 
-		 * This is populated lazily.
-		 */
-		std::map<std::string, NPObject *> m_objects;
+    /**
+     * \brief Map of this object's properties that are objects
+     * themselves.
+     *
+     * This is populated lazily.
+     */
+    std::map<std::string, NPObject *> m_objects;
 
-		/**
-		 * \brief A reference to the NPP object.
-		 */
-		BrowserAdapter *m_adapter;
+    /**
+     * \brief A reference to the NPP object.
+     */
+    BrowserAdapter *m_adapter;
 };
 
 #endif
