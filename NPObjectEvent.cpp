@@ -149,6 +149,9 @@ bool NPObjectEvent::PrvObjConstruct(NPObject *obj, const NPVariant *args,
 }
 
 NPObjectEvent::NPObjectEvent(BrowserAdapter *adapter)
+    : m_pageX(0)
+    , m_pageY(0)
+    , m_modifiers(0)
 {
     //TRACEF("Entered %s", __FUNCTION__);
     if (!sPropertyIdsInitialized) {

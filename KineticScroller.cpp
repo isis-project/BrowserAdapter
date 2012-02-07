@@ -112,6 +112,8 @@ KineticScroller::KineticScroller(GMainContext* glibCtxt)
     , m_px(0)
     , m_ux(0)
     , m_scrollLock(ScrollLockInvalid)
+    , m_recordedMouseX(0)
+    , m_recordedMouseY(0)
 {
 }
 
