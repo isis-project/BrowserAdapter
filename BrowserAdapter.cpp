@@ -3232,32 +3232,6 @@ const char* BrowserAdapter::js_interrogateClicks(AdapterBase *adapter, const NPV
     return NULL;
 }
 
-void BrowserAdapter::addJsonProperty(struct json_value* root, const char* name, const char* value)
-{
-    json_t* label = json_new_string(name);
-
-    json_insert_child(label, json_new_string(value));
-    json_insert_child(root, label);
-}
-
-void BrowserAdapter::addJsonProperty(struct json_value* root, const char* name, int32_t value)
-{
-    char szValue[48];
-
-    ::snprintf(szValue, G_N_ELEMENTS(szValue), "%d", value );
-    json_t* label = json_new_string(name);
-    json_insert_child(label, json_new_number(szValue));
-    json_insert_child(root, label);
-}
-
-void BrowserAdapter::addJsonProperty(struct json_value* root, const char* name, bool value)
-{
-    json_t* label = json_new_string(name);
-    json_insert_child(label, value ? json_new_true() : json_new_false());
-    json_insert_child(root, label);
-}
-
-
 const char* BrowserAdapter::js_clickAt(AdapterBase *adapter, const NPVariant *args, uint32_t argCount, NPVariant *result)
 {
     if (argCount != 3 || IsIntegerVariant(args[0]) == false ||
