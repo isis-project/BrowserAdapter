@@ -4473,18 +4473,18 @@ void BrowserAdapter::msgRemoveFlashRects(const char* rectIdJson)
     TRACEF("REMOVE RECTS!: %s", rectIdJson);
 
     // numeric id and type are passed
+    pbnjson::JValue rectId;
+    pbnjson::JDomParser parser(NULL);
+    pbnjson::JSchemaFragment schema("{}");
 
-    json_object* root = json_tokener_parse(rectIdJson);
-
-    if (!root || is_error(root)) {
+    if (!parser.parse(rectIdJson, schema, NULL)) {
+        TRACEF("%s: unable to parse string '%s'\n", __FUNCTION__, rectIdJson);
         return;
     }
 
-    json_object* idObj = json_object_object_get(root, "id");
-    uintptr_t id = json_object_get_int(idObj);
-
-    json_object* typeObj = json_object_object_get(root, "type");
-    InteractiveRectType type = (InteractiveRectType)json_object_get_int(typeObj);
+    rectId = parser.getDom();
+    uintptr_t id = (uintptr_t) rectId["id"].asNumber<int64_t>();
+    InteractiveRectType type = (InteractiveRectType) rectId["type"].asNumber<int>();
 
     switch (type) {
     case InteractiveRectDefault:
@@ -4500,9 +4500,7 @@ void BrowserAdapter::msgRemoveFlashRects(const char* rectIdJson)
         break;
     }
 
-    //syslog(LOG_DEBUG, "%s: Removing rect id: %d, new count: %d", __FUNCTION__, id, mFlashRects.size());
-
-    json_object_put(root);
+    return;
 }
 
 void BrowserAdapter::msgShowPrintDialog()
