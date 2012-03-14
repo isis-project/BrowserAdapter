@@ -1,0 +1,17 @@
+Source: browseradapter
+Section: webOS
+Priority: extra
+Maintainer: Anupam <anupam.kaul@palm.com>
+Build-Depends: debhelper (>= 8.0.0)
+Standards-Version: 3.9.2
+Homepage: https://github.com/isis-project/BrowserAdapter
+#Vcs-Git: git://git.debian.org/collab-maint/browseradapter.git
+#Vcs-Browser: http://git.debian.org/?p=collab-maint/browseradapter.git;a=summary
+
+Package: browseradapter
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: NPAPI plugin for isis-browser.
+ This is the NPAPI browser plugin to isis-browser. This plugin communicates with the BrowserServer which renders a web page into this adapter. js_* methods are implementations of the exposed JavaScript routines callable by a JavaScript program. msg* 
+ methods are unsolicited messages sent by the BrowserSserver when it needs to inform this adapter about something. handle* 
+ methods are called by the browser via the NPAPI plugin callback event handler.
