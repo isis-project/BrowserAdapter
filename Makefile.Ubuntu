@@ -15,7 +15,7 @@ WEBKIT_PATH_INCLUDE = $(NOVA_TOP_DIR_ABS)/$(WEBKIT_DIR)
 BS_DIR := ../BrowserServer
 
 INCLUDES := -I$(BS_DIR)/Yap -I$(STAGING_INC_DIR)
-LIBS := -L$(BS_DIR)/$(BUILD_TYPE)-x86 -lYap -L$(STAGING_LIB_DIR) -lmjson $(STAGING_LIB_DIR)/AdapterBase.a
+LIBS := -L$(BS_DIR)/$(BUILD_TYPE)-x86 -lYap -L$(STAGING_LIB_DIR) $(STAGING_LIB_DIR)/AdapterBase.a
 
 INCLUDES += \
 	-I$(WEBKIT_PATH_INCLUDE)/WebCore/platform/graphics/pg \
