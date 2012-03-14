@@ -1167,7 +1167,7 @@ void BrowserAdapter::handlePaint(NpPalmDrawEvent* event)
 
 void BrowserAdapter::handleWindowChange(NPWindow* window)
 {
-    TRACEF("BrowserAdapter::handleWindowChange: %ld, %ld\n", mWindow.width, mWindow.height);
+    TRACEF("BrowserAdapter::handleWindowChange: %u, %u\n", mWindow.width, mWindow.height);
     TRACEF("scroll %d,%d", mScrollPos.x, mScrollPos.y);
 
     m_pageOffset.set(window->x, window->y);
