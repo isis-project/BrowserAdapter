@@ -32,7 +32,6 @@ LICENSE@@@ */
 #include <memory>
 #include <string.h>
 #include <glib.h>
-#include <json.h>
 #include <syslog.h>
 
 #include <sys/types.h>
@@ -58,7 +57,6 @@ LICENSE@@@ */
 #include "NPObjectEvent.h"
 #include <PFilters.h>
 
-#include <cjson/json.h>
 #include <pbnjson.hpp>
 
 extern "C" {
