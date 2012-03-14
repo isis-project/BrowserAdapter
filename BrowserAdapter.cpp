@@ -4776,6 +4776,7 @@ void BrowserAdapter::msgDownloadError(const char* url, const char* errorMsg)
  */
 void BrowserAdapter::msgHighlightRects(const char* rectsArrayJson)
 {
+#ifdef FIXME_QT
     TRACEF("%s: rects array: %s", __FUNCTION__, rectsArrayJson);
 
     // clear out previous rectangles
@@ -4865,6 +4866,7 @@ Done:
         TRACEF("%s: some json failure\n", __FUNCTION__);
         removeHighlight();
     }
+#endif /* FIXME_QT */
 }
 
 void BrowserAdapter::msgLinkClicked(const char* url)
@@ -6043,6 +6045,7 @@ void BrowserAdapter::stopZoomAnimation()
 
 void BrowserAdapter::msgUpdateScrollableLayers(const char* json)
 {
+#ifdef FIXME_QT
     if (!json)
         return;
 
@@ -6101,6 +6104,7 @@ void BrowserAdapter::msgUpdateScrollableLayers(const char* json)
     }
 
     json_object_put(root);
+#endif /* FIXME_QT */
 }
 
 bool BrowserAdapter::detectScrollableLayerUnderMouseDown(const Point& pagePt, const Point& mousePt)
