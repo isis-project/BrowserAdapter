@@ -4413,55 +4413,31 @@ void BrowserAdapter::jsonToRects(const char* rectsArrayJson)
     int numRects = 0;
 
     // parse out rectangle coordinates
-    json_object* rectsArrayRoot = json_tokener_parse(rectsArrayJson);
-    array_list* rectsArray;
+    pbnjson::JValue rectsArray;
+    pbnjson::JDomParser parser(NULL);
+    pbnjson::JSchemaFile schema("/etc/palm/browser/InteractiveWidgetRect.schema");
 
-    if (!rectsArrayRoot || is_error(rectsArrayRoot)) {
-        rectsArrayRoot = NULL;
+    if (!parser.parse(rectsArrayJson, schema, NULL)) {
         TRACEF("%s: unable to parse string '%s'\n", __FUNCTION__, rectsArrayJson);
         goto Done;
     }
 
-    rectsArray = json_object_get_array(rectsArrayRoot);
-    if (!rectsArray || is_error(rectsArray)) {
-        TRACEF("%s: unable to get array from '%s'\n", __FUNCTION__, json_object_get_string(rectsArrayRoot));
-        goto Done;
-    }
+    rectsArray = parser.getDom();
+    numRects = (int) rectsArray.arraySize();
 
-    numRects = array_list_length(rectsArray);
     for (int i = 0; i < numRects; ++i)
     {
-        json_object* rectJson = (json_object*) array_list_get_idx(rectsArray, i);
+        pbnjson::JValue rectObj = rectsArray[i];
         int left, top, right, bottom;
         uintptr_t id;
         InteractiveRectType type;
 
-        json_object* idObj = json_object_object_get(rectJson, "id");
-        id = json_object_get_int(idObj);
-
-        json_object* coord = json_object_object_get(rectJson, "left");
-        left = json_object_get_int(coord);
-
-        coord = json_object_object_get(rectJson, "top");
-        if (!coord || is_error(coord)) {
-            goto Done;
-        }
-        top = json_object_get_int(coord);
-
-        coord = json_object_object_get(rectJson, "right");
-        if (!coord || is_error(coord)) {
-            goto Done;
-        }
-        right = json_object_get_int(coord);
-
-        coord = json_object_object_get(rectJson, "bottom");
-        if (!coord || is_error(coord)) {
-            goto Done;
-        }
-        bottom = json_object_get_int(coord);
-
-        json_object* typeObj = json_object_object_get(rectJson, "type");
-        type = (InteractiveRectType)json_object_get_int(typeObj);
+        id = (uintptr_t) rectObj["id"].asNumber<int64_t>();
+        left = rectObj["left"].asNumber<int>();
+        top = rectObj["top"].asNumber<int>();
+        right = rectObj["right"].asNumber<int>();
+        bottom = rectObj["bottom"].asNumber<int>();
+        type = (InteractiveRectType) rectObj["type"].asNumber<int>();
 
         BrowserRect rect(left, top, right-left, bottom-top);
 
@@ -4480,16 +4456,10 @@ void BrowserAdapter::jsonToRects(const char* rectsArrayJson)
             g_debug("Unrecognized rect type: %d", type);
             break;
         }
-
-        //syslog(LOG_DEBUG, "%s: inserting rect: type: %d, id: %d, left: %d, top: %d, width: %d, height: %d, new count: %d",
-        //       __FUNCTION__, (int)type, id, rect.x(), rect.y(), rect.w(), rect.h(), resultRects.size());
     }
 
 Done:
-    if (rectsArrayRoot) {
-        json_object_put(rectsArrayRoot);
-    }
-
+    return;
 }
 
 void BrowserAdapter::msgAddFlashRects(const char* rectsArrayJson)
