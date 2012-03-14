@@ -559,9 +559,6 @@ private:
     bool doTouchEvent(int32_t type, NpPalmTouchEvent *event);
 
     static BrowserAdapter* GetAndInitAdapter( AdapterBase* adapter );
-    static void addJsonProperty(struct json_value* root, const char* name, const char* value);
-    static void addJsonProperty(struct json_value* root, const char* name, int32_t value);
-    static void addJsonProperty(struct json_value* root, const char* name, bool value);
     static int readPngFile(const char* pszFileName, uint32_t* &pPixelData, int &nImageWidth, int &nImageHeight);
     static int readPngFile(const char* pszFileName, PContext2D& context, PPixmap* &pPixmap,
                            int &nImageWidth, int &nImageHeight);

@@ -32,7 +32,6 @@ LICENSE@@@ */
 #include <memory>
 #include <string.h>
 #include <glib.h>
-#include <json.h>
 #include <syslog.h>
 
 #include <sys/types.h>
@@ -58,7 +57,6 @@ LICENSE@@@ */
 #include "NPObjectEvent.h"
 #include <PFilters.h>
 
-#include <cjson/json.h>
 #include <pbnjson.hpp>
 
 extern "C" {
@@ -3232,32 +3230,6 @@ const char* BrowserAdapter::js_interrogateClicks(AdapterBase *adapter, const NPV
     return NULL;
 }
 
-void BrowserAdapter::addJsonProperty(struct json_value* root, const char* name, const char* value)
-{
-    json_t* label = json_new_string(name);
-
-    json_insert_child(label, json_new_string(value));
-    json_insert_child(root, label);
-}
-
-void BrowserAdapter::addJsonProperty(struct json_value* root, const char* name, int32_t value)
-{
-    char szValue[48];
-
-    ::snprintf(szValue, G_N_ELEMENTS(szValue), "%d", value );
-    json_t* label = json_new_string(name);
-    json_insert_child(label, json_new_number(szValue));
-    json_insert_child(root, label);
-}
-
-void BrowserAdapter::addJsonProperty(struct json_value* root, const char* name, bool value)
-{
-    json_t* label = json_new_string(name);
-    json_insert_child(label, value ? json_new_true() : json_new_false());
-    json_insert_child(root, label);
-}
-
-
 const char* BrowserAdapter::js_clickAt(AdapterBase *adapter, const NPVariant *args, uint32_t argCount, NPVariant *result)
 {
     if (argCount != 3 || IsIntegerVariant(args[0]) == false ||
@@ -4439,55 +4411,31 @@ void BrowserAdapter::jsonToRects(const char* rectsArrayJson)
     int numRects = 0;
 
     // parse out rectangle coordinates
-    json_object* rectsArrayRoot = json_tokener_parse(rectsArrayJson);
-    array_list* rectsArray;
+    pbnjson::JValue rectsArray;
+    pbnjson::JDomParser parser(NULL);
+    pbnjson::JSchemaFile schema("/etc/palm/browser/InteractiveWidgetRect.schema");
 
-    if (!rectsArrayRoot || is_error(rectsArrayRoot)) {
-        rectsArrayRoot = NULL;
+    if (!parser.parse(rectsArrayJson, schema, NULL)) {
         TRACEF("%s: unable to parse string '%s'\n", __FUNCTION__, rectsArrayJson);
         goto Done;
     }
 
-    rectsArray = json_object_get_array(rectsArrayRoot);
-    if (!rectsArray || is_error(rectsArray)) {
-        TRACEF("%s: unable to get array from '%s'\n", __FUNCTION__, json_object_get_string(rectsArrayRoot));
-        goto Done;
-    }
+    rectsArray = parser.getDom();
+    numRects = (int) rectsArray.arraySize();
 
-    numRects = array_list_length(rectsArray);
     for (int i = 0; i < numRects; ++i)
     {
-        json_object* rectJson = (json_object*) array_list_get_idx(rectsArray, i);
+        pbnjson::JValue rectObj = rectsArray[i];
         int left, top, right, bottom;
         uintptr_t id;
         InteractiveRectType type;
 
-        json_object* idObj = json_object_object_get(rectJson, "id");
-        id = json_object_get_int(idObj);
-
-        json_object* coord = json_object_object_get(rectJson, "left");
-        left = json_object_get_int(coord);
-
-        coord = json_object_object_get(rectJson, "top");
-        if (!coord || is_error(coord)) {
-            goto Done;
-        }
-        top = json_object_get_int(coord);
-
-        coord = json_object_object_get(rectJson, "right");
-        if (!coord || is_error(coord)) {
-            goto Done;
-        }
-        right = json_object_get_int(coord);
-
-        coord = json_object_object_get(rectJson, "bottom");
-        if (!coord || is_error(coord)) {
-            goto Done;
-        }
-        bottom = json_object_get_int(coord);
-
-        json_object* typeObj = json_object_object_get(rectJson, "type");
-        type = (InteractiveRectType)json_object_get_int(typeObj);
+        id = (uintptr_t) rectObj["id"].asNumber<int64_t>();
+        left = rectObj["left"].asNumber<int>();
+        top = rectObj["top"].asNumber<int>();
+        right = rectObj["right"].asNumber<int>();
+        bottom = rectObj["bottom"].asNumber<int>();
+        type = (InteractiveRectType) rectObj["type"].asNumber<int>();
 
         BrowserRect rect(left, top, right-left, bottom-top);
 
@@ -4506,16 +4454,10 @@ void BrowserAdapter::jsonToRects(const char* rectsArrayJson)
             g_debug("Unrecognized rect type: %d", type);
             break;
         }
-
-        //syslog(LOG_DEBUG, "%s: inserting rect: type: %d, id: %d, left: %d, top: %d, width: %d, height: %d, new count: %d",
-        //       __FUNCTION__, (int)type, id, rect.x(), rect.y(), rect.w(), rect.h(), resultRects.size());
     }
 
 Done:
-    if (rectsArrayRoot) {
-        json_object_put(rectsArrayRoot);
-    }
-
+    return;
 }
 
 void BrowserAdapter::msgAddFlashRects(const char* rectsArrayJson)
@@ -4529,18 +4471,18 @@ void BrowserAdapter::msgRemoveFlashRects(const char* rectIdJson)
     TRACEF("REMOVE RECTS!: %s", rectIdJson);
 
     // numeric id and type are passed
+    pbnjson::JValue rectId;
+    pbnjson::JDomParser parser(NULL);
+    pbnjson::JSchemaFragment schema("{}");
 
-    json_object* root = json_tokener_parse(rectIdJson);
-
-    if (!root || is_error(root)) {
+    if (!parser.parse(rectIdJson, schema, NULL)) {
+        TRACEF("%s: unable to parse string '%s'\n", __FUNCTION__, rectIdJson);
         return;
     }
 
-    json_object* idObj = json_object_object_get(root, "id");
-    uintptr_t id = json_object_get_int(idObj);
-
-    json_object* typeObj = json_object_object_get(root, "type");
-    InteractiveRectType type = (InteractiveRectType)json_object_get_int(typeObj);
+    rectId = parser.getDom();
+    uintptr_t id = (uintptr_t) rectId["id"].asNumber<int64_t>();
+    InteractiveRectType type = (InteractiveRectType) rectId["type"].asNumber<int>();
 
     switch (type) {
     case InteractiveRectDefault:
@@ -4556,9 +4498,7 @@ void BrowserAdapter::msgRemoveFlashRects(const char* rectIdJson)
         break;
     }
 
-    //syslog(LOG_DEBUG, "%s: Removing rect id: %d, new count: %d", __FUNCTION__, id, mFlashRects.size());
-
-    json_object_put(root);
+    return;
 }
 
 void BrowserAdapter::msgShowPrintDialog()
@@ -4834,6 +4774,7 @@ void BrowserAdapter::msgDownloadError(const char* url, const char* errorMsg)
  */
 void BrowserAdapter::msgHighlightRects(const char* rectsArrayJson)
 {
+#ifdef FIXME_QT
     TRACEF("%s: rects array: %s", __FUNCTION__, rectsArrayJson);
 
     // clear out previous rectangles
@@ -4923,6 +4864,7 @@ Done:
         TRACEF("%s: some json failure\n", __FUNCTION__);
         removeHighlight();
     }
+#endif /* FIXME_QT */
 }
 
 void BrowserAdapter::msgLinkClicked(const char* url)
@@ -6101,6 +6043,7 @@ void BrowserAdapter::stopZoomAnimation()
 
 void BrowserAdapter::msgUpdateScrollableLayers(const char* json)
 {
+#ifdef FIXME_QT
     if (!json)
         return;
 
@@ -6159,6 +6102,7 @@ void BrowserAdapter::msgUpdateScrollableLayers(const char* json)
     }
 
     json_object_put(root);
+#endif /* FIXME_QT */
 }
 
 bool BrowserAdapter::detectScrollableLayerUnderMouseDown(const Point& pagePt, const Point& mousePt)
