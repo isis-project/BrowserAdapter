@@ -22,8 +22,8 @@ LICENSE@@@ */
 #include "IpcBuffer.h"
 #include "BrowserRect.h"
 #include "BrowserOffscreenInfo.h"
+#include <QImage>
 
-class PGSurface;
 class BrowserOffscreenCalculations;
 
 class BrowserOffscreen
@@ -51,7 +51,7 @@ public:
     void updateParams(BrowserOffscreenCalculations* calc);
     bool matchesParams(BrowserOffscreen* other) const;
 
-    PGSurface* surface();
+    QImage surface();
     void clear();
     void copyFrom(BrowserOffscreen* other, BrowserRect* rect=NULL);
 
@@ -68,7 +68,6 @@ private:
     IpcBuffer* m_ipcBuffer;
     unsigned char* m_buffer;
     BrowserOffscreenInfo* m_header;
-    PGSurface* m_surface;
 
     int m_contentWidth;
     int m_contentHeight;

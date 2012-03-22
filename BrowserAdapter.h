@@ -28,13 +28,14 @@ LICENSE@@@ */
 #include <list>
 #include <vector>
 #include <map>
-#include <PGContext.h>
-#include <PGSurface.h>
 #include <pbnjson.hpp>
 #include <semaphore.h>
 
 #include <BrowserRect.h>
 #include "BrowserScrollableLayer.h"
+
+#include <QImage>
+#include <QPainter>
 
 struct PluginType;
 class BrowserOffscreen;
@@ -377,7 +378,7 @@ private:
     };
 
     struct SelectionReticleInfo {
-        PGSurface* surface;
+        QImage* surface;
         GSource* timeoutSource;
         int x;
         int y;
@@ -431,8 +432,7 @@ private:
     };
 
     KineticScroller* mScroller;
-    PGSurface* mDirtyPattern;
-
+    QImage* mDirtyPattern;
 
     Point m_pageOffset; // Position of top left corner relative to a Netscape page
     Point m_touchPtDoc; // last touch press or touch move point in document coordinates
@@ -458,7 +458,7 @@ private:
     BrowserOffscreen* mOffscreen1;
     BrowserOffscreen* mOffscreenCurrent;
 
-    PGSurface* mFrozenSurface;
+    QImage* mFrozenSurface;
     bool mFrozen;
     Point mFrozenRenderPos;
     int mFrozenRenderWidth;
@@ -559,11 +559,6 @@ private:
     bool doTouchEvent(int32_t type, NpPalmTouchEvent *event);
 
     static BrowserAdapter* GetAndInitAdapter( AdapterBase* adapter );
-    static int readPngFile(const char* pszFileName, uint32_t* &pPixelData, int &nImageWidth, int &nImageHeight);
-    static int readPngFile(const char* pszFileName, PContext2D& context, PPixmap* &pPixmap,
-                           int &nImageWidth, int &nImageHeight);
-    static int preScaleImage(PPixmap* pPixmap, int nImageWidth, int nImageHeight);
-    static int writePngFile(const char* pszFileName, const uint32_t* pPixelData, int nImageWidth, int nImageHeight);
     static bool isSafeDir(const char* pszFileName);
     bool prvSmartZoom(const Point& pt);
     void invalidate(void);
@@ -578,7 +573,7 @@ private:
 
     void enableFastScaling(bool enable);
 
-    int showHighlight(PGContext* gc);
+    int showHighlight(QPainter* gc);
     void removeHighlight();
     void invalidateHighlightRectsRegion();
 
@@ -593,13 +588,13 @@ private:
     bool detectScrollableLayerUnderMouseDown(const Point& pagePt, const Point& mousePt);
     bool scrollLayerUnderMouse(const Point& currentMousePtDoc);
     void resetScrollableLayerScrollSession();
-    void showActiveScrollableLayer(PGContext* gc);
+    void showActiveScrollableLayer(QPainter* gc);
 
     // used to create a scrim around a plugin rectangle "spotlight"
-    int showSpotlight(PGContext* gc);
+    int showSpotlight(QPainter* gc);
 
     void initSelectionReticleSurface();
-    void showSelectionReticle(PGContext* gc);
+    void showSelectionReticle(QPainter* gc);
     void invalidateSelectionReticleRegion();
 
     bool sendRequestOffscreenChange(bool sync, int asyncDelayMillis);

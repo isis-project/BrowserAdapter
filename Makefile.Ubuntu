@@ -1,36 +1,33 @@
 BUILD_TYPE ?= debug
 PLATFORM   := x86
 
-# Use ?= for WEBKIT_DIR since desktop-binaries (hudson) build script will set it as needed.
-WEBKIT_DIR ?= webkit4v8
-
 STAGING_INC_DIR := $(LUNA_STAGING)/include
 STAGING_LIB_DIR := $(LUNA_STAGING)/lib
 
-NOVA_TOP_DIR_REL = ../
-NOVA_TOP_DIR_ABS = $(shell cd $(NOVA_TOP_DIR_REL); pwd)
-
-WEBKIT_PATH_INCLUDE = $(NOVA_TOP_DIR_ABS)/$(WEBKIT_DIR)
-
-BS_DIR := ../BrowserServer
-
-INCLUDES := -I$(BS_DIR)/Yap -I$(STAGING_INC_DIR)
-LIBS := -L$(BS_DIR)/$(BUILD_TYPE)-x86 -lYap -L$(STAGING_LIB_DIR) $(STAGING_LIB_DIR)/AdapterBase.a
+INCLUDES := -I$(STAGING_INC_DIR) -I$(STAGING_INC_DIR)/Yap
+LIBS := -L$(STAGING_LIB_DIR) -lYap -lAdapterBase
 
 INCLUDES += \
-	-I$(WEBKIT_PATH_INCLUDE)/WebCore/platform/graphics/pg \
-	-I$(WEBKIT_PATH_INCLUDE)/WebKit/palm/webkit \
-	-I$(LUNA_STAGING)/include \
-	-I$(LUNA_STAGING)/include/Piranha \
-	-I$(LUNA_STAGING)/include/webkit/npapi
+	-I$(LUNA_STAGING)/include/webkit/npapi \
+   -I$(QT_INSTALL_PREFIX)/include/ \
+   -I$(QT_INSTALL_PREFIX)/include/Qt \
+   -I$(QT_INSTALL_PREFIX)/include/QtCore \
+   -I$(QT_INSTALL_PREFIX)/include/QtGui \
+   -I$(QT_INSTALL_PREFIX)/include/QtNetwork
 
 LIBS += \
 	-Wl,-rpath $(LUNA_STAGING)/lib \
+   -L$(QT_INSTALL_PREFIX)/lib \
 	-L$(LUNA_STAGING)/lib \
-	-lWebKitLuna -lPiranha
+   -lQtGui \
+   -lQtNetwork \
+   -lQtCore
 
 include Makefile.inc
 
 install: all
 	@mkdir -p $(LUNA_STAGING)/lib/BrowserPlugins
 	install -m 0755 $(TARGET_SO) $(LUNA_STAGING)/lib/BrowserPlugins
+
+.PHONY: stage
+stage: install

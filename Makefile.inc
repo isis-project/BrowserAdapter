@@ -35,7 +35,7 @@ INCLUDES := $(INCLUDES) \
 
 LIBS := $(LIBS) \
 	-lglib-2.0 \
-	-lpng -lrt -lpthread -lpbnjson_cpp
+	-lrt -lpthread -lpbnjson_cpp
 
 LOCAL_CFLAGS := $(CFLAGS) -MD -Wall -Werror $(FLAGS_OPT)
 

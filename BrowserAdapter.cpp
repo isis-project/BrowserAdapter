@@ -37,8 +37,6 @@ LICENSE@@@ */
 #include <sys/types.h>
 #include <pwd.h>
 
-#include <palmwebtypes.h>
-
 #include "BrowserAdapter.h"
 #include "BrowserAdapterManager.h"
 #include "BrowserCenteredZoom.h"
@@ -55,13 +53,8 @@ LICENSE@@@ */
 #include "ElementInfo.h"
 #include "JsonNPObject.h"
 #include "NPObjectEvent.h"
-#include <PFilters.h>
 
 #include <pbnjson.hpp>
-
-extern "C" {
-#include <png.h>
-}
 
 // what user does browserserver run as?
 #define BROWSERVER_USER "luna"
@@ -567,11 +560,11 @@ BrowserAdapter::~BrowserAdapter()
     delete [] mArgn;
     delete [] mArgv;
 
-    if (mDirtyPattern)
-        mDirtyPattern->releaseRef();
+    delete mDirtyPattern;
+    mDirtyPattern = 0;
 
-    if (mFrozenSurface)
-        mFrozenSurface->releaseRef();
+    delete mFrozenSurface;
+    mFrozenSurface = 0;
 
     delete mOffscreen0;
     delete mOffscreen1;
@@ -587,10 +580,8 @@ BrowserAdapter::~BrowserAdapter()
         mSelectionReticle.timeoutSource = NULL;
     }
 
-    if (mSelectionReticle.surface != NULL) {
-        mSelectionReticle.surface->releaseRef();
-        mSelectionReticle.surface = NULL;
-    }
+    delete mSelectionReticle.surface;
+    mSelectionReticle.surface = NULL;
 
     BrowserAdapterManager::instance()->unregisterAdapter(this);
 
@@ -845,21 +836,21 @@ bool BrowserAdapter::init()
 
     if (!mDirtyPattern) {
         const int patternSize = 8;
-        mDirtyPattern = PGSurface::create(patternSize * 2, patternSize * 2, false);
+        mDirtyPattern = new QImage(patternSize * 2, patternSize * 2, QImage::Format_ARGB32_Premultiplied);
 
-        PGContext* gc = PGContext::create();
-        gc->setSurface(mDirtyPattern);
-        gc->setStrokeColor(PColor32(0x00, 0x00, 0x00, 0x00));
+        QPainter gc;
+        gc.begin(mDirtyPattern);
+        gc.setPen(QColor(0x00, 0x00, 0x00, 0x00));
 
-        gc->setFillColor(PColor32(0xCC, 0xCC, 0xCC, 0xFF));
-        gc->drawRect(0, 0, patternSize, patternSize);
-        gc->drawRect(patternSize, patternSize, patternSize * 2, patternSize * 2);
+        gc.setBrush(QBrush(QColor(0xCC, 0xCC, 0xCC, 0xFF)));
+        gc.drawRect(QRect(0, 0, patternSize, patternSize));
+        gc.drawRect(QRect(patternSize, patternSize, patternSize * 2, patternSize * 2));
 
-        gc->setFillColor(PColor32(0xEE, 0xEE, 0xEE, 0xFF));
-        gc->drawRect(patternSize, 0, patternSize * 2, patternSize);
-        gc->drawRect(0, patternSize, patternSize, patternSize * 2);
+        gc.setBrush(QBrush(QColor(0xEE, 0xEE, 0xEE, 0xFF)));
+        gc.drawRect(QRect(patternSize, 0, patternSize * 2, patternSize));
+        gc.drawRect(QRect(0, patternSize, patternSize, patternSize * 2));
 
-        gc->releaseRef();
+        gc.end();
     }
 
     return successful;
@@ -917,27 +908,27 @@ BrowserAdapter* BrowserAdapter::GetAndInitAdapter( AdapterBase* adapter )
     return pAdapter;
 }
 
-static PColor32 colorNoOffscreen = PColor32(0xff, 0xff, 0x00, 0xff);
-static PColor32 colorNoConnection = PColor32(0x00, 0xff, 0xff, 0xff);
-static PColor32 colorOffscreenSurfEmpty = PColor32(0xff, 0x00, 0xff, 0xff);
-static PColor32 colorGenericBorder = PColor32(0x00, 0x00, 0xff, 0xff);
+static QColor colorNoOffscreen(0xff, 0xff, 0x00, 0xff);
+static QColor colorNoConnection(0x00, 0xff, 0xff, 0xff);
+static QColor colorOffscreenSurfEmpty(0xff, 0x00, 0xff, 0xff);
+static QColor colorGenericBorder(0x00, 0x00, 0xff, 0xff);
 
 //#define DRAW_DEBUG_COLORS
 #if defined(DRAW_DEBUG_COLORS)
 
-static void drawDebugBorder(PGContext* gc, NPWindow* window, PColor32 color)
+static void drawDebugBorder(QPainter* gc, NPWindow* window, QColor color)
 {
     gc->push();
     gc->translate(window->x, window->y);
     gc->addClipRect(0, 0, window->width, window->height);
-    gc->setFillColor(PColor32(0,0,0,0));
+    gc->setFillColor(QColor(0,0,0,0));
     gc->setStrokeThickness(2);
     gc->setStrokeColor(color);
     gc->drawRect(0, 0, window->width, window->height);
     gc->pop();
 }
 
-static void drawDebugFill(PGContext* gc, NPWindow* window, PColor32 color)
+static void drawDebugFill(QPainter* gc, NPWindow* window, QColor color)
 {
     gc->push();
     gc->translate(window->x, window->y);
@@ -949,11 +940,11 @@ static void drawDebugFill(PGContext* gc, NPWindow* window, PColor32 color)
 
 #else
 
-static void drawDebugBorder(PGContext* gc, NPWindow* window, PColor32 color)
+static void drawDebugBorder(QPainter* gc, NPWindow* window, QColor color)
 {
 }
 
-static void drawDebugFill(PGContext* gc, NPWindow* window, PColor32 color)
+static void drawDebugFill(QPainter* gc, NPWindow* window, QColor color)
 {
 }
 
@@ -966,32 +957,30 @@ void BrowserAdapter::handlePaint(NpPalmDrawEvent* event)
     // Waiting msgPainted event has not come
     if (mFrozenSurface) {
         handlePaintInFrozenState(event);
-        drawDebugBorder((PGContext*) event->graphicsContext, &mWindow, colorGenericBorder);
+        drawDebugBorder((QPainter*) event->graphicsContext, &mWindow, colorGenericBorder);
         return;
     }
 
     if (mOffscreenCurrent == 0) {
-        drawDebugFill((PGContext*) event->graphicsContext, &mWindow, mBrowserServerConnected ? colorNoOffscreen : colorNoConnection);
+        drawDebugFill((QPainter*) event->graphicsContext, &mWindow, mBrowserServerConnected ? colorNoOffscreen : colorNoConnection);
         return;
     }
 
     BrowserOffscreenInfo* info = mOffscreenCurrent->header();
-    PGSurface* offscreenSurf = mOffscreenCurrent->surface();
-    if (!offscreenSurf ||
-            offscreenSurf->width() == 0 ||
-            offscreenSurf->height() == 0) {
-        drawDebugFill((PGContext*) event->graphicsContext, &mWindow, mBrowserServerConnected ? colorOffscreenSurfEmpty : colorNoConnection);
+    QImage offscreenSurf = mOffscreenCurrent->surface();
+    if (offscreenSurf.width() == 0 || offscreenSurf.height() == 0) {
+        drawDebugFill((QPainter*) event->graphicsContext, &mWindow, mBrowserServerConnected ? colorOffscreenSurfEmpty : colorNoConnection);
         return;
     }
 
-    PGContext* gc = (PGContext*) event->graphicsContext;
-    gc->push();
+    QPainter* gc = (QPainter*) event->graphicsContext;
+    gc->save();
 
     gc->translate(mWindow.x, mWindow.y);
-    gc->addClipRect(0, 0, mWindow.width, mWindow.height);
+    gc->setClipRect(QRect(0, 0, mWindow.width, mWindow.height));
 
     // For debug drawing
-    //gc->setFillColor(PColor32(0xff, 0, 0, 0xff));
+    //gc->setFillColor(QColor(0xff, 0, 0, 0xff));
     //gc->drawRect(0, 0, mWindow.width, mWindow.height);
 
     // Paint checkerboard
@@ -1027,10 +1016,12 @@ void BrowserAdapter::handlePaint(NpPalmDrawEvent* event)
 
             // Need to paint checker-board
 
-            gc->push();
+            gc->save();
             gc->translate(-mScrollPos.x, m_headerHeight-mScrollPos.y);
             gc->translate(windowRect.x(), windowRect.y());
 
+/*
+// Not sure what this is doing
             int pw = mDirtyPattern->width();
             int ph = mDirtyPattern->height();
 
@@ -1038,14 +1029,17 @@ void BrowserAdapter::handlePaint(NpPalmDrawEvent* event)
             int dstY = windowRect.y() % ph - ph;
             int dstR = windowRect.r() % pw + pw + windowRect.w();
             int dstB = windowRect.b() % ph + ph + windowRect.h();
+*/
+            gc->setClipRect(QRect(0, 0, windowRect.w(), windowRect.h()));
 
-            gc->addClipRect(0, 0, windowRect.w(), windowRect.h());
-
+/*
             gc->drawPattern(mDirtyPattern,
                             windowRect.x() % pw,
                             windowRect.y() % ph,
                             dstX, dstY, dstR, dstB);
-            gc->pop();
+*/
+            gc->fillRect(QRect(0, 0, windowRect.w(), windowRect.h()), QBrush(*mDirtyPattern));
+            gc->restore();
         }
     }
 
@@ -1064,27 +1058,24 @@ void BrowserAdapter::handlePaint(NpPalmDrawEvent* event)
         gc->translate(centerOfSurfX, centerOfSurfY);
         gc->scale(zoomFactor, zoomFactor);
 
-        gc->bitblt(offscreenSurf,
-                   - info->renderedWidth / 2,
-                   - info->renderedHeight / 2,
-                   info->renderedWidth / 2,
-                   info->renderedHeight / 2);
+        gc->drawImage(QRect(- info->renderedWidth / 2,
+                            - info->renderedHeight / 2,
+                            info->renderedWidth / 2,
+                            info->renderedHeight / 2),
+                      offscreenSurf);
     }
     else {
         gc->translate(info->renderedX, info->renderedY);
-        gc->bitblt(offscreenSurf,
-                   0, 0,
-                   offscreenSurf->width(),
-                   offscreenSurf->height());
+        gc->drawImage(QRect(0, 0, offscreenSurf.width(), offscreenSurf.height()), offscreenSurf);
     }
 
-    gc->pop();
+    gc->restore();
 
     if (mScrollableLayerScrollSession.isActive)
-        showActiveScrollableLayer((PGContext*)event->graphicsContext);
+        showActiveScrollableLayer((QPainter*)event->graphicsContext);
 
     if (mShowHighlight)
-        showHighlight((PGContext*)event->graphicsContext);
+        showHighlight((QPainter*)event->graphicsContext);
 
     bool showYScrollbar = false;
     bool showXScrollbar = false;
@@ -1106,19 +1097,16 @@ void BrowserAdapter::handlePaint(NpPalmDrawEvent* event)
         xScrollbarLength = MAX(xScrollbarLength, kScrollbarMinLength);
         yScrollbarLength = MAX(yScrollbarLength, kScrollbarMinLength);
 
-        gc->push();
+        gc->save();
         gc->translate(mWindow.x, mWindow.y);
-        gc->addClipRect(0, 0, mWindow.width, mWindow.height);
+        gc->setClipRect(QRect(0, 0, mWindow.width, mWindow.height));
 
         gc->translate(0, m_headerHeight);
 
-        gc->setStrokeColor(PColor32(0x00, 0x00, 0x00, 0xFF));
-        gc->setFillColor(PColor32(0xAA, 0xAA, 0xAA, 0xD0));
-
-        int opacity = MIN(mScrollbarOpacity, 0xFF);
-        gc->setFillOpacity(opacity);
-        gc->setStrokeOpacity(opacity);
-        gc->setStrokeThickness(0.2f);
+        QPen pen (QColor(0x00, 0x00, 0x00, 0xFF));
+        pen.setWidthF(0.2f);
+        gc->setPen(pen);
+        gc->setBrush(QColor(0xAA, 0xAA, 0xAA, 0xD0));
 
         if (showXScrollbar)
             gc->drawRect(xScrollbarPosition + kScrollbarEdgeWidth + kScrollbarEdgeMargin,
@@ -1132,18 +1120,18 @@ void BrowserAdapter::handlePaint(NpPalmDrawEvent* event)
                          mWindow.width - kScrollbarEdgeMargin + kScrollbarEdgeWidth,
                          yScrollbarPosition + yScrollbarLength - kScrollbarEdgeWidth - kScrollbarEdgeMargin);
 
-        gc->pop();
+        gc->restore();
 
     }
 
-    drawDebugBorder((PGContext*) event->graphicsContext, &mWindow, colorGenericBorder);
+    drawDebugBorder((QPainter*) event->graphicsContext, &mWindow, colorGenericBorder);
 
     /*FIXME: RR
 
     #if DEBUG_FLASH_RECTS
     gc->push();
-        gc->setStrokeColor(PColor32(0, 0, 0, 0));
-        gc->setFillColor(PColor32(255, 0, 0, 60));
+        gc->setStrokeColor(QColor(0, 0, 0, 0));
+        gc->setFillColor(QColor(255, 0, 0, 60));
         for (RectMap::const_iterator i = mFlashRects.begin();
              i != mFlashRects.end();
              ++i)
@@ -1157,7 +1145,7 @@ void BrowserAdapter::handlePaint(NpPalmDrawEvent* event)
         gc->pop();
 
     if (mSelectionReticle.show) {
-      showSelectionReticle((PGContext*)event->graphicsContext);
+      showSelectionReticle((QPainter*)event->graphicsContext);
     }
     #endif
     */
@@ -1468,6 +1456,7 @@ bool BrowserAdapter::handleTouchCancelled(NpPalmTouchEvent *event)
 
 bool BrowserAdapter::doTouchEvent(int32_t type, NpPalmTouchEvent *event)
 {
+#ifdef QT_FIXME
     if (shouldPassTouchEvents()) {
         pbnjson::JValue arr = pbnjson::Array();
         for (int ix = 0; ix < event->touches.length; ix++) {
@@ -1531,6 +1520,7 @@ bool BrowserAdapter::doTouchEvent(int32_t type, NpPalmTouchEvent *event)
             asyncCmdTouchEvent(type, arr.arraySize(), event->modifiers, json.c_str());
         }
     }
+#endif
     return true;
 }
 
@@ -1812,10 +1802,8 @@ const char* BrowserAdapter::js_openURL(AdapterBase *adapter, const NPVariant *ar
         a->asyncCmdOpenUrl(url);
         ::free(url);
 
-        if (a->mFrozenSurface) {
-            a->mFrozenSurface->releaseRef();
-            a->mFrozenSurface = 0;
-        }
+        delete a->mFrozenSurface;
+        a->mFrozenSurface = 0;
 
         return NULL;
     }
@@ -2082,10 +2070,8 @@ const char* BrowserAdapter::js_setHTML(AdapterBase *adapter, const NPVariant *ar
     char* arg1 =NPStringToString(NPVARIANT_TO_STRING(args[1]));
     proxy->asyncCmdSetHtml(arg0,arg1);
 
-    if (proxy->mFrozenSurface) {
-        proxy->mFrozenSurface->releaseRef();
-        proxy->mFrozenSurface = 0;
-    }
+    delete proxy->mFrozenSurface;
+    proxy->mFrozenSurface = 0;
 
     ::free(arg0);
     ::free(arg1);
@@ -2476,7 +2462,7 @@ const char* BrowserAdapter::js_saveViewToFile(AdapterBase *adapter, const NPVari
 {
     BrowserAdapter *a = GetAndInitAdapter(adapter);
 
-    int viewLeft = - a->mScrollPos.x;  // raw coords scaled by PGContext in renderToFile
+    int viewLeft = - a->mScrollPos.x;  // raw coords scaled by QPainter in renderToFile
     int viewTop =  - a->mScrollPos.y;
 
     // Source Rectangle is optional
@@ -2552,273 +2538,6 @@ const char* BrowserAdapter::js_saveViewToFile(AdapterBase *adapter, const NPVari
 
     return NULL;
 }
-
-/**
- * Read in a 32-bit RGBA PNG image.
- *
- * @param pszFileName  The name of the PNG file to read.
- * @param pPixelData   The 32-bit pixel data will be allocated and read into this pointer. The caller
- *                     is responsible for deleting this memory (delete [] pPixelData).
- * @param nImageWidth  Will return the width of the image.
- * @param nImageHeight Will return the height of the image.
- *
- * @return Zero if successful, non-zero on error.
- */
-int BrowserAdapter::readPngFile(const char* pszFileName, uint32_t* &pPixelData, int &nImageWidth, int &nImageHeight)
-{
-    int nErr = 0;
-
-    FILE *fp = fopen(pszFileName, "rb");
-    if (NULL == fp) {
-        nErr = errno;
-    }
-
-    png_structp png_ptr(NULL);
-    if (!nErr) {
-        png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-        if (NULL == png_ptr) {
-            nErr = EBADF;
-        }
-    }
-
-    png_infop info_ptr(NULL);
-    if (!nErr) {
-
-        if (setjmp(png_jmpbuf(png_ptr))) {
-            nErr = EIO;
-        }
-        else {
-            info_ptr = png_create_info_struct(png_ptr);
-            if (NULL == info_ptr) {
-                nErr = EBADF;
-            }
-        }
-    }
-
-    if (!nErr) {
-        if (setjmp(png_jmpbuf(png_ptr))) {
-            nErr = EIO;
-        }
-        else {
-            png_init_io(png_ptr, fp);
-        }
-    }
-
-    if (!nErr) {
-        if (setjmp(png_jmpbuf(png_ptr))) {
-            nErr = EIO;
-        }
-        else {
-            png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
-        }
-    }
-
-    if (NULL != fp) {
-        ::fclose(fp);
-    }
-
-    if (!nErr && info_ptr->bit_depth != 8) {
-        nErr = EILSEQ;
-    }
-    if (!nErr && info_ptr->color_type != PNG_COLOR_TYPE_RGBA) {
-        nErr = EILSEQ;
-    }
-
-    if (!nErr) {
-        nImageWidth = info_ptr->width;
-        nImageHeight = info_ptr->height;
-        pPixelData = new uint32_t[info_ptr->width * info_ptr->height];
-        if (NULL == pPixelData) {
-            nErr = ENOMEM;
-        }
-    }
-
-    if (!nErr) {
-        if (setjmp(png_jmpbuf(png_ptr))) {
-            nErr = EIO;
-        }
-        else {
-            png_bytep* row_pointers = png_get_rows(png_ptr, info_ptr);
-            png_byte* r = reinterpret_cast<png_byte*>(pPixelData);
-            for (png_uint_32 row = 0; row < info_ptr->height; row++) {
-                int idx = 0;
-                for (png_uint_32 col = 0; col < info_ptr->width; col++) {
-                    *r++ = row_pointers[row][idx++];
-                    *r++ = row_pointers[row][idx++];
-                    *r++ = row_pointers[row][idx++];
-                    *r++ = row_pointers[row][idx++];
-                }
-            }
-        }
-    }
-
-    if (NULL != png_ptr) {
-        if (setjmp(png_jmpbuf(png_ptr))) {
-            nErr = EIO;
-        }
-        else {
-            png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
-        }
-
-    }
-
-    return nErr;
-}
-
-/**
- * Some images come "pre-multiplied" - this function will scale the RGB values
- * by the alpha channel value.
- */
-int BrowserAdapter::preScaleImage(PPixmap* pPixmap, int nImageWidth, int nImageHeight)
-{
-    uint32_t* pPixelData = static_cast<uint32_t*>(pPixmap->GetBuffer());
-    int nNumPixels = nImageWidth * nImageHeight;
-    while (nNumPixels--) {
-        png_byte* pixel = (png_byte*)pPixelData;
-        if (pixel[3] == 0) {
-            *pPixelData = 0x0;
-        }
-        else if (pixel[3] == 255) {
-        }
-        else {
-            float scale = static_cast<float>(pixel[3]) / 255.0;
-            for (int i = 0; i < 3; i++) {
-                pixel[i] = static_cast<png_byte>(static_cast<float>(pixel[i]) * scale);
-            }
-        }
-        pPixelData++;
-    }
-
-    return 0;
-}
-
-/**
- * Read in a 32-bit PNG file and create a Pixmap from it.
- */
-int BrowserAdapter::readPngFile(const char* pszFileName, PContext2D& context, PPixmap* &pPixmap, int &nImageWidth, int &nImageHeight)
-{
-    pPixmap = NULL;
-    uint32_t* pPixelData(NULL);
-
-    int nErr = readPngFile(pszFileName, pPixelData, nImageWidth, nImageHeight);
-
-    if (!nErr) {
-        pPixmap = context.CreatePixmap(nImageWidth, nImageHeight);
-        if (NULL != pPixmap) {
-            pPixmap->SetQuality(PSBilinear);
-            // FIXME: use real pitch (row length in bytes) here.
-            unsigned int Pitch = 0;
-            pPixmap->Set (PFORMAT_8888, pPixelData, Pitch, true /*allow access*/);
-        }
-        else {
-            nErr = ENOMEM;
-        }
-    }
-
-    delete [] pPixelData;
-
-    return nErr;
-}
-
-/**
- * Write the 32-bit RGBA pixel data to a file in PNG format.
- *
- * @param pszFileName  The file in which to put the pixel data.
- * @param pPixelData   The pixel data to write.
- * @param nImageWidth  The width of the image.
- * @param nImageHeight The height of the image.
- *
- * @return The error code. Zero means success.
- */
-int BrowserAdapter::writePngFile(const char* pszFileName, const uint32_t* pPixelData, int nImageWidth, int nImageHeight)
-{
-    if (NULL == pszFileName || NULL == pPixelData)
-        return EFAULT;
-
-    int nErr = 0;
-
-    const png_byte byBitDepth(8);
-
-    png_structp pPngImage = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-    if (NULL == pPngImage) {
-        nErr = ENOMEM;// Don't know why this will fail, let's say insufficient memory.
-    }
-
-    png_infop pPngInfo(NULL);
-    if (!nErr) {
-        pPngInfo = png_create_info_struct(pPngImage);
-        if (NULL == pPngInfo) {
-            nErr = ENOMEM;// Don't know why this will fail, let's say insufficient memory.
-        }
-    }
-
-    FILE* pFile(NULL);
-    if (!nErr) {
-        pFile = ::fopen(pszFileName, "wb");
-        if (NULL == pFile) {
-            nErr = EIO;
-        }
-    }
-
-    // Initialize I/O
-    if ( !nErr ) {
-        if ( setjmp( png_jmpbuf(pPngImage) ) )
-            nErr = EIO;
-        else
-            png_init_io(pPngImage, pFile);
-    }
-
-    // Write the header
-    if ( !nErr ) {
-        if (setjmp(png_jmpbuf(pPngImage))) {
-            nErr = EIO;
-        }
-        else {
-            png_set_IHDR(pPngImage, pPngInfo, nImageWidth, nImageHeight,
-                         byBitDepth, PNG_COLOR_TYPE_RGBA, PNG_INTERLACE_NONE,
-                         PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
-
-            png_write_info(pPngImage, pPngInfo);
-        }
-    }
-
-    // Write the image data
-    for (int row = 0; row < nImageHeight; row++) {
-        if (setjmp(png_jmpbuf(pPngImage))) {
-            nErr = EIO;
-        }
-        else {
-            png_write_row( pPngImage, (png_byte*)(pPixelData) );
-            pPixelData += nImageWidth;
-        }
-    }
-
-    // Close file
-    if ( NULL != pPngImage ) {
-        if (setjmp(png_jmpbuf(pPngImage))) {
-            nErr = EIO;
-        }
-        else {
-            png_write_end(pPngImage, NULL);
-        }
-    }
-
-    if ( NULL != pPngImage ) {
-        if (setjmp(png_jmpbuf(pPngImage))) {
-            nErr = EIO;
-        }
-        else {
-            png_destroy_write_struct( &pPngImage, &pPngInfo );
-        }
-    }
-
-    if (NULL != pFile) {
-        ::fclose(pFile);
-    }
-
-    return nErr;
-}
-
 
 void
 BrowserAdapter::msgGetElementInfoAtPointResponse(int32_t queryNum, bool succeeded, const char* element, const char* id,
@@ -2916,23 +2635,20 @@ const char* BrowserAdapter::js_generateIconFromFile(AdapterBase *adapter, const 
     ::g_mkdir_with_parents(::dirname(pszFileName), S_IRWXU );
     ::free(pszFileName);
 
-    int nErr = 0;
-
     // Read in the source file
-    int nImageWidth(0), nImageHeight(0);
-    PPixmap* pInputPixmap(NULL);
-    PContext2D context;
-    nErr = readPngFile(pszSrcFile, context, pInputPixmap, nImageWidth, nImageHeight);
+    QImage inputPixmap(pszSrcFile);
+
+//    nErr = readPngFile(pszSrcFile, context, pInputPixmap, nImageWidth, nImageHeight);
 
     if (right < left)
         right = left;
-    if (right > nImageWidth)
-        right = nImageWidth;
+    if (right > inputPixmap.width())
+        right = inputPixmap.width();
     if (bottom < top)
         bottom = top;
-    if (bottom > nImageHeight)
-        bottom = nImageHeight;
-
+    if (bottom > inputPixmap.height())
+        bottom = inputPixmap.height();
+#ifdef QT_FIXME
     const int nMargin = 4;// Must agree with pixel data in image files
     const int nIconSize = 64;// Width & height of output image
     const int nIconWidth = nIconSize-2*nMargin;// Width of icon image within file
@@ -2947,11 +2663,11 @@ const char* BrowserAdapter::js_generateIconFromFile(AdapterBase *adapter, const 
             pFinalPixmap->Set (PFORMAT_8888, NULL, 0, true /*allow access*/);
             pFinalPixmap->SetQuality(PSBilinear);
             context.RenderToTexture(pFinalPixmap);
-            context.Clear(PColor32(0x00,0x00,0x00,0x0));
+            context.Clear(QColor(0x00,0x00,0x00,0x0));
 
             const PVertex2D srcTL(left, top);
             const PVertex2D srcBR(right, bottom);
-            context.DrawSubPixmap(pInputPixmap, iconTL, iconBR, srcTL, srcBR);
+            context.DrawSubPixmap(inputPixmap, iconTL, iconBR, srcTL, srcBR);
         }
         else {
             nErr = ENOMEM;
@@ -3001,13 +2717,6 @@ const char* BrowserAdapter::js_generateIconFromFile(AdapterBase *adapter, const 
         nErr = writePngFile(pszOutFile, static_cast<const uint32_t*>(pFinalPixmap->GetBuffer()), nIconSize, nIconSize);
     }
 
-    if (NULL != pInputPixmap) {
-        context.DestroyPixmap(pInputPixmap);
-    }
-    if (NULL != pFinalPixmap) {
-        context.DestroyPixmap(pFinalPixmap);
-    }
-
     if (nErr) {
         char msg[kExceptionMessageLength];
         ::snprintf(msg, G_N_ELEMENTS(msg), "ERROR %d generating icon '%s'", nErr, pszOutFile);
@@ -3017,6 +2726,7 @@ const char* BrowserAdapter::js_generateIconFromFile(AdapterBase *adapter, const 
 
     ::free( pszSrcFile );
     ::free( pszOutFile );
+#endif
 
     return NULL;
 }
@@ -3058,6 +2768,7 @@ const char* BrowserAdapter::js_deleteImage(AdapterBase *adapter, const NPVariant
 
 const char* BrowserAdapter::js_resizeImage(AdapterBase *adapter, const NPVariant *args, uint32_t argCount, NPVariant *result)
 {
+#ifdef QT_FIXME
     if( !(argCount == 4 &&
             NPVARIANT_IS_STRING(args[0]) &&
             NPVARIANT_IS_STRING(args[1]) &&
@@ -3115,6 +2826,7 @@ const char* BrowserAdapter::js_resizeImage(AdapterBase *adapter, const NPVariant
 
     ::free(pszSrcFile);
     ::free(pszDstFile);
+#endif
 
     return NULL;
 }
@@ -4072,10 +3784,8 @@ void BrowserAdapter::msgPainted(int32_t sharedBufferKey)
         return;
     }
 
-    if (mFrozenSurface) {
-        mFrozenSurface->releaseRef();
-        mFrozenSurface = NULL;
-    }
+    delete mFrozenSurface;
+    mFrozenSurface = NULL;
 
     int receivedBuffer = -1;
     if (mOffscreen0->ipcBuffer()->key() == sharedBufferKey)
@@ -5147,29 +4857,18 @@ void BrowserAdapter::freeze()
 
     mFrozen = true;
 
-    if (mFrozenSurface) {
-        mFrozenSurface->releaseRef();
-        mFrozenSurface = 0;
-    }
+    delete mFrozenSurface;
+    mFrozenSurface = 0;
 
-    if (mOffscreenCurrent && mOffscreenCurrent->surface()) {
+    if (mOffscreenCurrent) {
 
         BrowserOffscreenInfo* info = mOffscreenCurrent->header();
-        PGSurface* offscreenSurf = mOffscreenCurrent->surface();
+        QImage offscreenSurf = mOffscreenCurrent->surface();
 
-        int width = offscreenSurf->width() * kFrozenSurfaceScale;
-        int height = offscreenSurf->height() * kFrozenSurfaceScale;
+        int width = offscreenSurf.width() * kFrozenSurfaceScale;
+        int height = offscreenSurf.height() * kFrozenSurfaceScale;
 
-        mFrozenSurface = PGSurface::create(width, height);
-
-        PGContext* ctxt = PGContext::create();
-        ctxt->setSurface(mFrozenSurface);
-
-        ctxt->bitblt(offscreenSurf,
-                     0, 0, (int) offscreenSurf->width(), (int) offscreenSurf->height(),
-                     0, 0, width, height);
-
-        ctxt->releaseRef();
+        mFrozenSurface = new QImage(offscreenSurf.scaled(width, height));
 
         mFrozenRenderPos.x = info->renderedX;
         mFrozenRenderPos.y = info->renderedY;
@@ -5222,15 +4921,16 @@ void BrowserAdapter::handlePaintInFrozenState(NpPalmDrawEvent* event)
         return;
     }
 
-    PGContext* gc = (PGContext*) event->graphicsContext;
-    gc->push();
+    QPainter* gc = (QPainter*) event->graphicsContext;
+    gc->save();
 
     gc->translate(mWindow.x, mWindow.y);
-    gc->addClipRect(0, 0, mWindow.width, mWindow.height);
+    gc->setClipRect(QRect(0, 0, mWindow.width, mWindow.height));
     gc->translate(-mScrollPos.x, -mScrollPos.y);
 
     // -- Checkerboard ---------------------------------------------------
 
+#ifdef QT_FIXME
     BrowserRect windowRect(mScrollPos.x,
                            mScrollPos.y + m_headerHeight,
                            mWindow.width,
@@ -5248,6 +4948,7 @@ void BrowserAdapter::handlePaintInFrozenState(NpPalmDrawEvent* event)
                     windowRect.x() % pw,
                     windowRect.y() % ph,
                     dstX, dstY, dstR, dstB);
+#endif
 
     // -- Scaled draw of frozen surface ----------------------------------
 
@@ -5263,13 +4964,13 @@ void BrowserAdapter::handlePaintInFrozenState(NpPalmDrawEvent* event)
     gc->translate(centerOfSurfX, centerOfSurfY);
     gc->scale(zoomFactor, zoomFactor);
 
-    gc->bitblt(mFrozenSurface,
-               - mFrozenRenderWidth / 2,
-               - mFrozenRenderHeight / 2,
-               mFrozenRenderWidth / 2,
-               mFrozenRenderHeight / 2);
+    gc->drawImage(QRect(- mFrozenRenderWidth / 2,
+                        - mFrozenRenderHeight / 2,
+                        mFrozenRenderWidth / 2,
+                        mFrozenRenderHeight / 2),
+                  *mFrozenSurface);
 
-    gc->pop();
+    gc->restore();
 
     if (mShowHighlight) {
         showHighlight(gc);
@@ -5314,7 +5015,7 @@ void BrowserAdapter::invalidateHighlightRectsRegion()
 }
 
 
-int BrowserAdapter::showSpotlight(PGContext* gc)
+int BrowserAdapter::showSpotlight(QPainter* gc)
 {
     /* FIXME: RR
         BrowserRect scaledSpotlightRect(ceil(m_spotlightRect.x()*mZoomLevel) + mJsScrollX,
@@ -5327,8 +5028,8 @@ int BrowserAdapter::showSpotlight(PGContext* gc)
     return 0;
     //draw a grey drop shadow
     gc->push();
-    //gc->setStrokeColor(PColor32(0x69, 0x69, 0x69, 0x69));
-       // gc->setFillColor(PColor32(0x69, 0x69, 0x69, 0x69));
+    //gc->setStrokeColor(QColor(0x69, 0x69, 0x69, 0x69));
+       // gc->setFillColor(QColor(0x69, 0x69, 0x69, 0x69));
         int x1=scaledSpotlightRect.x();
         int y1=scaledSpotlightRect.y();
         int x2=scaledSpotlightRect.r();
@@ -5467,14 +5168,14 @@ int BrowserAdapter::showSpotlight(PGContext* gc)
  *
  *
  */
-int BrowserAdapter::showHighlight(PGContext* gc)
+int BrowserAdapter::showHighlight(QPainter* gc)
 {
-    gc->push();
-    gc->setStrokeColor(PColor32(0, 0, 0, 0));  // no border around rects
-    gc->setFillColor(PColor32(0, 0, 0, 60));
+    gc->save();
+    gc->setPen(QColor(0, 0, 0, 0));  // no border around rects
+    gc->setBrush(QBrush(QColor(0, 0, 0, 60)));
 
     gc->translate(mWindow.x, mWindow.y);
-    gc->addClipRect(0, 0, mWindow.width, mWindow.height);
+    gc->setClipRect(QRect(0, 0, mWindow.width, mWindow.height));
     gc->translate(-mScrollPos.x, m_headerHeight-mScrollPos.y);
 
 
@@ -5516,16 +5217,16 @@ int BrowserAdapter::showHighlight(PGContext* gc)
 
 
         if (count == 0) {
-            gc->drawRect(r.x() * mZoomLevel,
-                         r.y() * mZoomLevel,
-                         r.r() * mZoomLevel,
-                         r.b() * mZoomLevel);
+            gc->drawRect(QRect(r.x() * mZoomLevel,
+                               r.y() * mZoomLevel,
+                               r.r() * mZoomLevel,
+                               r.b() * mZoomLevel));
         } else {
             for (int j = 0; j < count; j++) {
-                gc->drawRect(d[j].x() * mZoomLevel,
-                             d[j].y() * mZoomLevel,
-                             d[j].r() * mZoomLevel,
-                             d[j].b() * mZoomLevel);
+                gc->drawRect(QRect(d[j].x() * mZoomLevel,
+                                   d[j].y() * mZoomLevel,
+                                   d[j].r() * mZoomLevel,
+                                   d[j].b() * mZoomLevel));
             }
         }
 
@@ -5538,7 +5239,7 @@ int BrowserAdapter::showHighlight(PGContext* gc)
         */
     }
 
-    gc->pop();
+    gc->restore();
 
     return mHighlightRects.size();
 }
@@ -5724,7 +5425,7 @@ BrowserAdapter::initSelectionReticleSurface()
     mSelectionReticle.centerOffsetY = 0;
     mSelectionReticle.show = false;
 
-    mSelectionReticle.surface = PGSurface::createFromPNGFile(kSelectionReticleFile);
+    mSelectionReticle.surface = new QImage(kSelectionReticleFile);
     if (mSelectionReticle.surface) {
         mSelectionReticle.centerOffsetX = mSelectionReticle.surface->width()/2;
         mSelectionReticle.centerOffsetY = mSelectionReticle.surface->height()/2;
@@ -5732,7 +5433,7 @@ BrowserAdapter::initSelectionReticleSurface()
 }
 
 void
-BrowserAdapter::showSelectionReticle(PGContext* gc)
+BrowserAdapter::showSelectionReticle(QPainter* gc)
 {
     if (!mSelectionReticle.surface) {
         return;
@@ -6195,7 +5896,7 @@ void BrowserAdapter::resetScrollableLayerScrollSession()
     mScrollableLayerScrollSession.mouseDownY = 0;
 }
 
-void BrowserAdapter::showActiveScrollableLayer(PGContext* gc)
+void BrowserAdapter::showActiveScrollableLayer(QPainter* gc)
 {
     if (!mScrollableLayerScrollSession.isActive ||
             !mScrollableLayerScrollSession.layer)
@@ -6210,19 +5911,19 @@ void BrowserAdapter::showActiveScrollableLayer(PGContext* gc)
 
     const BrowserScrollableLayer& layer = it->second;
 
-    gc->push();
-    gc->setFillColor(PColor32(0, 0, 0, 0));
-    gc->setStrokeColor(PColor32(0x88, 0x88, 0x88, 0x80));
+    gc->save();
+    gc->setBrush(QColor(0, 0, 0, 0));
+    gc->setPen(QColor(0x88, 0x88, 0x88, 0x80));
 
     gc->translate(mWindow.x, mWindow.y);
-    gc->addClipRect(0, 0, mWindow.width, mWindow.height);
+    gc->setClipRect(QRect(0, 0, mWindow.width, mWindow.height));
     gc->translate(-mScrollPos.x, -mScrollPos.y);
 
     gc->drawRect(layer.bounds.x() * mZoomLevel,
                  layer.bounds.y() * mZoomLevel,
                  layer.bounds.r() * mZoomLevel,
                  layer.bounds.b() * mZoomLevel);
-    gc->pop();
+    gc->restore();
 }
 
 void BrowserAdapter::recordGesture(float s, float r, int cX, int cY)

@@ -16,7 +16,6 @@
 *
 LICENSE@@@ */
 
-#include <PGSurface.h>
 #include <math.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -105,16 +104,12 @@ BrowserOffscreen::BrowserOffscreen(IpcBuffer* ipcBuffer)
     : m_ipcBuffer(ipcBuffer)
     , m_buffer((unsigned char*)ipcBuffer->buffer() + sizeof(BrowserOffscreenInfo))
     , m_header((BrowserOffscreenInfo*)m_ipcBuffer->buffer())
-    , m_surface(0)
 {
     resetBuffer();
 }
 
 BrowserOffscreen::~BrowserOffscreen()
 {
-    if (m_surface)
-        m_surface->releaseRef();
-
     delete m_ipcBuffer;
 }
 
@@ -166,35 +161,18 @@ void BrowserOffscreen::copyFrom(BrowserOffscreen* other,  BrowserRect* r)
     }
 }
 
-PGSurface* BrowserOffscreen::surface()
+QImage BrowserOffscreen::surface()
 {
-    if (m_surface) {
-        if (((int)m_surface->width() == m_header->renderedWidth) &&
-                ((int)m_surface->height() == m_header->renderedHeight)) {
-            return m_surface;
-        }
-        else {
-            m_surface->releaseRef();
-            m_surface = 0;
-        }
-    }
+    QImage result;
 
-    if ((m_header->renderedWidth > 0) && (m_header->renderedHeight > 0)) {
-        m_surface = PGSurface::wrap(m_header->renderedWidth,
-                                    m_header->renderedHeight,
-                                    m_buffer, false);
-    }
+    if ((m_header->renderedWidth > 0) && (m_header->renderedHeight > 0))
+        result = QImage(m_buffer, m_header->renderedWidth, m_header->renderedHeight, QImage::Format_ARGB32_Premultiplied);
 
-    return m_surface;
+    return result;
 }
 
 void BrowserOffscreen::resetBuffer()
 {
-    if (m_surface) {
-        m_surface->releaseRef();
-        m_surface = 0;
-    }
-
     ::memset(m_header, 0, sizeof(BrowserOffscreenInfo));
 }
 
