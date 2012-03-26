@@ -1,3 +1,4 @@
 # Ignore build directories
 release-i686/
 release-arm/
+debug-x86/
