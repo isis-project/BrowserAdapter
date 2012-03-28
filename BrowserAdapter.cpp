@@ -234,7 +234,7 @@ NPError AdapterLibInitialize(void)// Called when proxy library is loaded by brow
 const char* AdapterGetMIMEDescription(void)
 {
     TRACE;
-    return "application/x-palm-browser";
+    return "application/x-palm-browser::;";
 }
 
 
