@@ -782,6 +782,8 @@ void BrowserAdapter::sendStateToServer()
  */
 bool BrowserAdapter::isActivated()
 {
+// FIXME Need access to PalmSystem
+#if PALM_SYSTEM_AVAILABLE
     bool activated(false);
 
     NPVariant jsCallResult, jsCallArgs;
@@ -793,6 +795,9 @@ bool BrowserAdapter::isActivated()
     }
 
     return activated;
+#else
+    return true;
+#endif
 }
 
 /**
