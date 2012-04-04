@@ -4158,12 +4158,12 @@ void BrowserAdapter::jsonToRects(const char* rectsArrayJson)
         case InteractiveRectDefault:
             mDefaultInteractiveRects.insert(RectMapItem(id, rect));
             TRACEF("inserting rect: type: %d, id: %d, left: %d, top: %d, width: %d, height: %d, new count: %d",
-                   (int)type, id, rect.x(), rect.y(), rect.w(), rect.h(), mDefaultInteractiveRects.size());
+                   (int)type, (int)id, rect.x(), rect.y(), rect.w(), rect.h(), (int)mDefaultInteractiveRects.size());
             break;
         case InteractiveRectPlugin:
             mFlashRects.insert(RectMapItem(id, rect));
             TRACEF("inserting rect: type: %d, id: %d, left: %d, top: %d, width: %d, height: %d, new count: %d",
-                   (int)type, id, rect.x(), rect.y(), rect.w(), rect.h(), mFlashRects.size());
+                   (int)type, (int)id, rect.x(), rect.y(), rect.w(), rect.h(), (int)mFlashRects.size());
             break;
         default:
             g_debug("Unrecognized rect type: %d", type);
@@ -4202,11 +4202,11 @@ void BrowserAdapter::msgRemoveFlashRects(const char* rectIdJson)
     switch (type) {
     case InteractiveRectDefault:
         mDefaultInteractiveRects.erase(id);
-        TRACEF("Removing rect type: %d, id: %d, new count: %d", type, id, mDefaultInteractiveRects.size());
+        TRACEF("Removing rect type: %d, id: %d, new count: %d", type, (int)id, (int)mDefaultInteractiveRects.size());
         break;
     case InteractiveRectPlugin:
         mFlashRects.erase(id);
-        TRACEF("Removing rect type: %d, id: %d, new count: %d", type, id, mFlashRects.size());
+        TRACEF("Removing rect type: %d, id: %d, new count: %d", type, (int)id, (int)mFlashRects.size());
         break;
     default:
         g_debug("Unrecognized rect type: %d", type);

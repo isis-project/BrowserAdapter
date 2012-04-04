@@ -79,7 +79,7 @@ void BrowserClientBase::asyncCmdClickAt(int32_t contentX, int32_t contentY, int3
     sendAsyncCommand();
 }
 
-void BrowserClientBase::asyncCmdKeyDown(uint16_t key, uint16_t modifiers)
+void BrowserClientBase::asyncCmdKeyDown(int32_t key, int32_t modifiers)
 {
     YapPacket* _cmd = packetCommand();
     (*_cmd) << (int16_t) 0x1008; // KeyDown
@@ -88,7 +88,7 @@ void BrowserClientBase::asyncCmdKeyDown(uint16_t key, uint16_t modifiers)
     sendAsyncCommand();
 }
 
-void BrowserClientBase::asyncCmdKeyUp(uint16_t key, uint16_t modifiers)
+void BrowserClientBase::asyncCmdKeyUp(int32_t key, int32_t modifiers)
 {
     YapPacket* _cmd = packetCommand();
     (*_cmd) << (int16_t) 0x1009; // KeyUp
