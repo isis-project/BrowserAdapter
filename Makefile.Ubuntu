@@ -23,6 +23,8 @@ LIBS += \
    -lQtNetwork \
    -lQtCore
 
+LOCAL_CFLAGS += -DISIS_DESKTOP
+
 include Makefile.inc
 
 install: all

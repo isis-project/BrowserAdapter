@@ -55,6 +55,7 @@ LICENSE@@@ */
 #include "NPObjectEvent.h"
 
 #include <pbnjson.hpp>
+#include <QtCore/QDir>
 
 // what user does browserserver run as?
 #define BROWSERVER_USER "luna"
@@ -463,7 +464,7 @@ BrowserAdapter::BrowserAdapter(NPP instance, GMainContext *ctxt, int16_t argc, c
     , mFlashGestureLock(false)
     , mMouseInInteractiveRect(false)
     , m_spotlightHandle(0)
-    , m_hitTestSchema(pbnjson::JSchemaFile("/etc/palm/browser/HitTest.schema"))
+    , m_hitTestSchema("{}")
     , m_ft(0)
     , m_clickPt(0, 0)
     , m_penDownDoc(0, 0)
@@ -485,6 +486,14 @@ BrowserAdapter::BrowserAdapter(NPP instance, GMainContext *ctxt, int16_t argc, c
     , m_bufferLock(0)
     , m_bufferLockName(0)
 {
+
+#ifdef ISIS_DESKTOP
+    QString schemaFile = QString("%1/.isis/conf/HitTest.schema").arg(QDir::homePath());
+#else
+    QString schemaFile("/etc/palm/browser/HitTest.schema");
+#endif
+
+    m_hitTestSchema = pbnjson::JSchemaFile(qPrintable(schemaFile));
 
     //openlog("browser-adapter", 0, LOG_USER);
     g_message("%s: %p", __PRETTY_FUNCTION__, this);
@@ -4128,8 +4137,14 @@ void BrowserAdapter::jsonToRects(const char* rectsArrayJson)
     // parse out rectangle coordinates
     pbnjson::JValue rectsArray;
     pbnjson::JDomParser parser(NULL);
-    pbnjson::JSchemaFile schema("/etc/palm/browser/InteractiveWidgetRect.schema");
 
+#ifdef ISIS_DESKTOP
+    QString schemaFile = QString("%1/.isis/conf/InteractiveWidgetRect.schema").arg(QDir::homePath());
+#else
+    QString schemaFile("/etc/palm/browser/InteractiveWidgetRect.schema");
+#endif
+
+    pbnjson::JSchemaFile schema(qPrintable(schemaFile));
     if (!parser.parse(rectsArrayJson, schema, NULL)) {
         TRACEF("%s: unable to parse string '%s'\n", __FUNCTION__, rectsArrayJson);
         goto Done;

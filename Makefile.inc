@@ -37,7 +37,7 @@ LIBS := $(LIBS) \
 	-lglib-2.0 \
 	-lrt -lpthread -lpbnjson_cpp
 
-LOCAL_CFLAGS := $(CFLAGS) -MD -Wall -Werror $(FLAGS_OPT)
+LOCAL_CFLAGS += $(CFLAGS) -MD -Wall -Werror $(FLAGS_OPT)
 
 EXPORT_FLAGS = -Wl,--version-script=BrowserAdapter.exports
 
