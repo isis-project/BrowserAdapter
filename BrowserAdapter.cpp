@@ -1428,14 +1428,14 @@ bool BrowserAdapter::handlePenDoubleClick(NpPalmPenEvent *event)
 bool BrowserAdapter::handleKeyDown(NpPalmKeyEvent *event)
 {
     EVENT_TRACEF("KeyDown %d/0x%08x\n", event->rawkeyCode, event->rawModifier);
-    asyncCmdKeyDown(event->rawkeyCode, event->rawModifier);
+    asyncCmdKeyDown(event->rawkeyCode, event->rawModifier, event->chr);
     return event->rawkeyCode != ESC_KEY && bEditorFocused;
 }
 
 bool BrowserAdapter::handleKeyUp(NpPalmKeyEvent *event)
 {
     EVENT_TRACEF("KeyUp %d/0x%08x\n", event->rawkeyCode, event->rawModifier);
-    asyncCmdKeyUp(event->rawkeyCode, event->rawModifier);
+    asyncCmdKeyUp(event->rawkeyCode, event->rawModifier, event->chr);
     return  event->rawkeyCode != ESC_KEY && bEditorFocused;
 }
 
