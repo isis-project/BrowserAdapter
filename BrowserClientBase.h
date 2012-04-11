@@ -22,8 +22,8 @@ public:
     void asyncCmdOpenUrl(const char* url);
     void asyncCmdSetHtml(const char* url, const char* body);
     void asyncCmdClickAt(int32_t contentX, int32_t contentY, int32_t numClicks, int32_t counter);
-    void asyncCmdKeyDown(int32_t key, int32_t modifiers);
-    void asyncCmdKeyUp(int32_t key, int32_t modifiers);
+    void asyncCmdKeyDown(int32_t key, int32_t modifiers, int32_t chr);
+    void asyncCmdKeyUp(int32_t key, int32_t modifiers, int32_t chr);
     void asyncCmdForward();
     void asyncCmdBack();
     void asyncCmdReload();

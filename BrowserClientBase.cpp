@@ -79,21 +79,23 @@ void BrowserClientBase::asyncCmdClickAt(int32_t contentX, int32_t contentY, int3
     sendAsyncCommand();
 }
 
-void BrowserClientBase::asyncCmdKeyDown(int32_t key, int32_t modifiers)
+void BrowserClientBase::asyncCmdKeyDown(int32_t key, int32_t modifiers, int32_t chr)
 {
     YapPacket* _cmd = packetCommand();
     (*_cmd) << (int16_t) 0x1008; // KeyDown
     (*_cmd) << key;
     (*_cmd) << modifiers;
+    (*_cmd) << chr;
     sendAsyncCommand();
 }
 
-void BrowserClientBase::asyncCmdKeyUp(int32_t key, int32_t modifiers)
+void BrowserClientBase::asyncCmdKeyUp(int32_t key, int32_t modifiers, int32_t chr)
 {
     YapPacket* _cmd = packetCommand();
     (*_cmd) << (int16_t) 0x1009; // KeyUp
     (*_cmd) << key;
     (*_cmd) << modifiers;
+    (*_cmd) << chr;
     sendAsyncCommand();
 }
 
@@ -715,23 +717,25 @@ bool BrowserClientBase::sendRawCmd(const char* rawCmd)
     }
 
     if (!matched && (strcmp(strSplit[0], "KeyDown") == 0)) {
-        if ((argCount - 1) < 2) return false;
+        if ((argCount - 1) < 3) return false;
         matched = true;
 
-        uint16_t key = strtoul(strSplit[1], NULL, 0);
-        uint16_t modifiers = strtoul(strSplit[2], NULL, 0);
+        int32_t key = strtoul(strSplit[1], NULL, 0);
+        int32_t modifiers = strtoul(strSplit[2], NULL, 0);
+        int32_t chr = strtoul(strSplit[3], NULL, 0);
 
-        asyncCmdKeyDown(key, modifiers);
+        asyncCmdKeyDown(key, modifiers, chr);
     }
 
     if (!matched && (strcmp(strSplit[0], "KeyUp") == 0)) {
-        if ((argCount - 1) < 2) return false;
+        if ((argCount - 1) < 3) return false;
         matched = true;
 
-        uint16_t key = strtoul(strSplit[1], NULL, 0);
-        uint16_t modifiers = strtoul(strSplit[2], NULL, 0);
+        int32_t key = strtoul(strSplit[1], NULL, 0);
+        int32_t modifiers = strtoul(strSplit[2], NULL, 0);
+        int32_t chr = strtoul(strSplit[3], NULL, 0);
 
-        asyncCmdKeyUp(key, modifiers);
+        asyncCmdKeyUp(key, modifiers, chr);
     }
 
     if (!matched && (strcmp(strSplit[0], "Forward") == 0)) {
