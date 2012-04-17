@@ -1,24 +1,34 @@
 BUILD_TYPE := release
 PLATFORM   := $(TARGET_ARCH)
 
-INCLUDES := -I$(INCLUDE_DIR)/Yap
-INCLUDES += -I$(INCLUDE_DIR)/BrowserServer
+STAGING_INC_DIR := $(OPIEDIR)/include
+STAGING_LIB_DIR := $(OPIEDIR)/lib
+QT_INSTALL_PREFIX := $(OPIEDIR)
+
+INCLUDES := -I$(STAGING_INC_DIR) -I$(STAGING_INC_DIR)/Yap -I$(STAGING_INC_DIR)/BrowserServer
+LIBS := -L$(STAGING_LIB_DIR) -lYap $(STAGING_LIB_DIR)/AdapterBase.a
 
 INCLUDES += \
-		-isystem $(INCLUDE_DIR)/Piranha \
-		-isystem $(INCLUDE_DIR)/Piranha/Backend \
-		-isystem $(INCLUDE_DIR)/Piranha/Font \
-		-isystem $(INCLUDE_DIR)/Piranha/Utils/lfp \
-		-isystem $(INCLUDE_DIR)/webkit/ \
-		-isystem $(INCLUDE_DIR)/webkit/npapi
+    -I$(STAGING_INC_DIR)/webkit/npapi \
+    -I$(QT_INSTALL_PREFIX)/include/ \
+    -I$(QT_INSTALL_PREFIX)/include/Qt \
+    -I$(QT_INSTALL_PREFIX)/include/QtCore \
+    -I$(QT_INSTALL_PREFIX)/include/QtGui \
+    -I$(QT_INSTALL_PREFIX)/include/QtNetwork
 
-LIBS := -L$(LIB_DIR) -lglib-2.0 -lgthread-2.0 -lYap -lWebKitLuna -lPiranha $(LIB_DIR)/AdapterBase.a
+LIBS += \
+    -Wl,-rpath $(STAGING_LIB_DIR) \
+    -L$(QT_INSTALL_PREFIX)/lib \
+	-L$(STAGING_LIB_DIR) \
+    -lQtGui \
+    -lQtNetwork \
+    -lQtCore
 
 include Makefile.inc
 
-install:
-	@mkdir -p $(INSTALL_DIR)/usr/lib/BrowserPlugins
-	install -m 755 $(BUILD_TYPE)-$(PLATFORM)/BrowserAdapter.so $(INSTALL_DIR)/usr/lib/BrowserPlugins
+install: all
+	@mkdir -p $(INSTALL_DIR)/lib/BrowserPlugins
+	install -m 0755 $(BUILD_TYPE)-$(PLATFORM)/BrowserAdapter.so $(INSTALL_DIR)/lib/BrowserPlugins
 
 stage:
 	@echo "nothing to do"
