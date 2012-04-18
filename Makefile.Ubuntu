@@ -31,5 +31,8 @@ install: all
 	@mkdir -p $(LUNA_STAGING)/lib/BrowserPlugins
 	install -m 0755 $(TARGET_SO) $(LUNA_STAGING)/lib/BrowserPlugins
 
+deb:
+	dpkg-buildpackage -rfakeroot
+
 .PHONY: stage
 stage: install
