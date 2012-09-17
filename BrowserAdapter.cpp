@@ -981,7 +981,6 @@ void BrowserAdapter::handlePaint(NpPalmDrawEvent* event)
     }
 
     BrowserOffscreenInfo* info = mOffscreenCurrent->header();
-    QImage offscreenSurf = mOffscreenCurrent->surface();
     if (offscreenSurf.width() == 0 || offscreenSurf.height() == 0) {
         drawDebugFill((QPainter*) event->graphicsContext, &mWindow, mBrowserServerConnected ? colorOffscreenSurfEmpty : colorNoConnection);
         return;
@@ -3821,6 +3820,10 @@ void BrowserAdapter::msgPainted(int32_t sharedBufferKey)
     }
 
     mOffscreenCurrent = receivedBuffer == 0 ? mOffscreen0 : mOffscreen1;
+    
+    // For performance : Moved from handlePaint. (by JeongBong Seo)
+    // Because new QImage creation causes another GL-Texture Binding.
+    offscreenSurf = mOffscreenCurrent->surface();
     invalidate();
 
     if (m_bufferLock)
