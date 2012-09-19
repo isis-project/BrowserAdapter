@@ -981,7 +981,6 @@ void BrowserAdapter::handlePaint(NpPalmDrawEvent* event)
     }
 
     BrowserOffscreenInfo* info = mOffscreenCurrent->header();
-    QImage offscreenSurf = mOffscreenCurrent->surface();
     if (offscreenSurf.width() == 0 || offscreenSurf.height() == 0) {
         drawDebugFill((QPainter*) event->graphicsContext, &mWindow, mBrowserServerConnected ? colorOffscreenSurfEmpty : colorNoConnection);
         return;
@@ -3821,6 +3820,10 @@ void BrowserAdapter::msgPainted(int32_t sharedBufferKey)
     }
 
     mOffscreenCurrent = receivedBuffer == 0 ? mOffscreen0 : mOffscreen1;
+    
+    // For performance : Moved from handlePaint. (by JeongBong Seo)
+    // Because new QImage creation causes another GL-Texture Binding.
+    offscreenSurf = mOffscreenCurrent->surface();
     invalidate();
 
     if (m_bufferLock)
@@ -5620,9 +5623,31 @@ void BrowserAdapter::scrollTo(int x, int y)
     mScrollPos.x = (mContentWidth > (int) mWindow.width) ? -x : 0;
     mScrollPos.y = -y;
 
-    asyncCmdSetScrollPosition(mScrollPos.x, mScrollPos.y,
-                              mScrollPos.x + mWindow.width,
-                              mScrollPos.y + mWindow.height);
+    // Request only unrendered - not received from server - area (by JeongBong Seo)
+    if(mOffscreenCurrent){
+        // check rendered image for current scroll position
+        BrowserOffscreenInfo* info = mOffscreenCurrent->header();
+        BrowserRect offscreenRect(info->renderedX,
+                                  info->renderedY,
+                                  info->renderedWidth,
+                                  info->renderedHeight);
+
+        BrowserRect windowRect(mScrollPos.x,
+                               mScrollPos.y,
+                               mWindow.width,
+                               mWindow.height);
+
+        BrowserRect contentRect(0, 0, mContentWidth, mContentHeight);
+        windowRect.intersect(contentRect);
+
+        // if not Send scroll position message to server for update screen
+        if (!offscreenRect.overlaps(windowRect)) {
+            asyncCmdSetScrollPosition(mScrollPos.x, mScrollPos.y,
+                                      mScrollPos.x + mWindow.width,
+                                      mScrollPos.y + mWindow.height);
+        }
+    }
+
     invalidate();
 
     fireScrolledToEvent(x, y);

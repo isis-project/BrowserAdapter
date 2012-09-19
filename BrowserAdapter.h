@@ -458,6 +458,7 @@ private:
     BrowserOffscreen* mOffscreen1;
     BrowserOffscreen* mOffscreenCurrent;
 
+    QImage offscreenSurf; // update every msgPainted(), not handlePaint()
     QImage* mFrozenSurface;
     bool mFrozen;
     Point mFrozenRenderPos;
