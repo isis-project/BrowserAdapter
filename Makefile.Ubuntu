@@ -8,7 +8,8 @@ INCLUDES := -I$(STAGING_INC_DIR) -I$(STAGING_INC_DIR)/Yap
 LIBS := -L$(STAGING_LIB_DIR) -lYap -lAdapterBase
 
 INCLUDES += \
-	-I$(LUNA_STAGING)/include/webkit/npapi \
+   -I$(LUNA_STAGING)/include/webkit/npapi \
+   -I$(LUNA_STAGING)/usr/include \
    -I$(QT_INSTALL_PREFIX)/include/ \
    -I$(QT_INSTALL_PREFIX)/include/Qt \
    -I$(QT_INSTALL_PREFIX)/include/QtCore \
@@ -16,9 +17,11 @@ INCLUDES += \
    -I$(QT_INSTALL_PREFIX)/include/QtNetwork
 
 LIBS += \
-	-Wl,-rpath $(LUNA_STAGING)/lib \
+   -L$(LUNA_STAGING)/lib \
+   -Wl,-rpath $(LUNA_STAGING)/lib \
+   -L$(LUNA_STAGING)/usr/lib \
+   -Wl,-rpath $(LUNA_STAGING)/usr/lib \
    -L$(QT_INSTALL_PREFIX)/lib \
-	-L$(LUNA_STAGING)/lib \
    -lQtGui \
    -lQtNetwork \
    -lQtCore
